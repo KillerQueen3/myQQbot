@@ -1,0 +1,9 @@
+/courses/
+/src/test/
+/target
+/out
+/src/main/resource/
+/src/main/resources/
+/deviceInfo.json
+/settings.properties
+/.idea
