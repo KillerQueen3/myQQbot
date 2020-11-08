@@ -8,7 +8,7 @@ import net.mamoe.mirai.message.data.MessageUtils;
 
 public class ParameterHandler extends GroupMessageHandler {
     public ParameterHandler() {
-        keys = new String[] {"roll", "Roll", "ROLL", "狗屁不通"};
+        keys = new String[] {"roll", "Roll", "ROLL", "狗屁不通", "本地图片"};
     }
 
     @Override
@@ -28,6 +28,7 @@ public class ParameterHandler extends GroupMessageHandler {
 
     @Override
     public MessageChain reply() {
+        String thing = source.contentToString().replaceFirst(matched, "").replaceAll(" ", "");
         if (matched.equalsIgnoreCase("roll")) {
             needQuote = true;
             int roll = Util.roll(source.contentToString());
@@ -36,7 +37,6 @@ public class ParameterHandler extends GroupMessageHandler {
             else
                 return null;
         } else if (matched.equals("狗屁不通")) {
-            String thing = source.contentToString().replaceFirst(matched, "").replaceAll(" ", "");
             String res;
             if (thing.length() > 0) {
                 res = NetTexts.getGouPi(thing);
@@ -46,6 +46,8 @@ public class ParameterHandler extends GroupMessageHandler {
             if (res == null)
                 res = "狗屁不通文章生成失败，机器人心累了不想再尝试了。";
             return MessageTool.atMsg(sender, MessageUtils.newChain(res));
+        } else if (matched.equals("本地图片")) {
+            return MessageTool.getRandomLocalImage(sender.getGroup(), thing);
         }
         return null;
     }

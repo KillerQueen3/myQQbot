@@ -9,12 +9,8 @@ import com.my.util.Settings;
 import net.coobird.thumbnailator.Thumbnails;
 import net.dreamlu.mica.http.HttpRequest;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -31,7 +27,6 @@ public class NetImageTool {
         param.put("keyword", keyword);
         param.put("size1200", "true");
         param.put("r18", "2");
-        System.out.println(param.toString());
         String t = HttpRequest.get(seTuApi).addHeader(param).connectTimeout(Duration.ofSeconds(5)).execute().asString();
         System.out.println(t);
         JsonObject object = (JsonObject) JsonParser.parseString(t);
@@ -41,28 +36,6 @@ public class NetImageTool {
         } else {
             return null;
         }
-    }
-
-    public static BufferedImage getImage(PixivImage pixivImage) {
-        try {
-            URL url = new URL(pixivImage.url);
-            //1.获取url的输入流 dataInputStream
-            DataInputStream dataInputStream = new DataInputStream(url.openStream());
-            //2.加一层BufferedInputStream
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(dataInputStream);
-            //3.构造原始图片流 preImage
-            BufferedImage preImage = ImageIO.read(bufferedInputStream);
-
-            dataInputStream.close();
-            bufferedInputStream.close();
-            if (pixivImage.r18) {
-                r18Image(preImage);
-            }
-            return reduceImage(preImage, Settings.imageScale);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public static void r18Image(BufferedImage source) {

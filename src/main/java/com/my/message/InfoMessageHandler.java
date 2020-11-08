@@ -1,6 +1,7 @@
 package com.my.message;
 
 import com.my.bot.MyBot;
+import com.my.file.ImageFileTool;
 import com.my.util.Settings;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.contact.MemberPermission;
@@ -9,14 +10,14 @@ import net.mamoe.mirai.message.data.MessageUtils;
 
 public class InfoMessageHandler extends GroupMessageHandler {
     private static final String infoString = "基于mirai的qq机器人，仅供个人学习之用。\n" +
+            "项目地址: https://github.com/KillerQueen3/myQQbot\n" +
             "此机器人离不开许多开源项目:\n" +
             "mirai--https://github.com/mamoe/mirai\n" +
             "狗屁不通生成器--https://github.com/menzi11/BullshitGenerator" +
             "...";
-    // TODO 项目信息。
 
     public InfoMessageHandler() {
-        keys = new String[] {"zaima", "status", "info", "读取设置"};
+        keys = new String[] {"zaima", "status", "info", "读取设置", "更新索引"};
     }
 
     @Override
@@ -47,6 +48,14 @@ public class InfoMessageHandler extends GroupMessageHandler {
                         return MessageUtils.newChain("读取成功！");
                     else
                         return MessageUtils.newChain("读取失败！请检查settings.properties文件");
+                } else
+                    return MessageUtils.newChain("无权限。");
+            case "更新索引":
+                if (sender.getPermission() == MemberPermission.ADMINISTRATOR || sender.getPermission() == MemberPermission.OWNER) {
+                    if (ImageFileTool.updateTagJson())
+                        return MessageUtils.newChain("更新成功！");
+                    else
+                        return MessageUtils.newChain("更新失败！");
                 } else
                     return MessageUtils.newChain("无权限。");
         }

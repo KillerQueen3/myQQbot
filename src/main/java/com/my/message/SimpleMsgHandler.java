@@ -1,5 +1,6 @@
 package com.my.message;
 
+import com.my.file.ImageFileTool;
 import com.my.net.NetTexts;
 import com.my.util.CourseDecoder;
 import net.mamoe.mirai.contact.Member;
@@ -8,7 +9,7 @@ import net.mamoe.mirai.message.data.MessageUtils;
 
 public class SimpleMsgHandler extends GroupMessageHandler {
     public SimpleMsgHandler() {
-        keys = new String[]{"夸我", "骂我", "课程", "课表"};
+        keys = new String[]{"夸我", "骂我", "课程", "课表", "标签"};
     }
 
     @Override
@@ -36,6 +37,8 @@ public class SimpleMsgHandler extends GroupMessageHandler {
             case "课表":
                 String reply = CourseDecoder.readTodayCourse("./courses/" + sender.getId() + ".json");
                 return MessageTool.atMsg(sender, MessageUtils.newChain(reply));
+            case "标签":
+                return MessageUtils.newChain(ImageFileTool.getTag());
         }
         return null;
     }
