@@ -4,7 +4,6 @@ import com.my.bot.MyBot;
 import com.my.file.ImageFileTool;
 import com.my.util.Settings;
 import net.mamoe.mirai.contact.Member;
-import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
 
@@ -13,11 +12,19 @@ public class InfoMessageHandler extends GroupMessageHandler {
             "项目地址: https://github.com/KillerQueen3/myQQbot\n" +
             "此机器人离不开许多开源项目:\n" +
             "mirai--https://github.com/mamoe/mirai\n" +
-            "狗屁不通生成器--https://github.com/menzi11/BullshitGenerator" +
-            "...";
+            "狗屁不通生成器--https://github.com/menzi11/BullshitGenerator\n" +
+            "...\n" +
+            "*本机器人发送的所有文本及图像均来自网络或用户自行上传，因此产生的一切问题与作者及本机器人无关。";
+
+    private static final String zhiLin = "来点色图--随机pixiv图片（有限额）\n" +
+            "本地图片[标签]--来自搭建者本地的图片，可用的[标签]可使用“标签”指令查看\n" +
+            "[r18]日榜/周榜/月榜[数量]--查看pixiv榜单前[数量]（1-10）张作品（有延迟，有cd）\n" +
+            "查图[插画id]--查找pixiv作品id的信息\n" +
+            "作者[用户id]--查找pixiv用户的一张随机作品\n" +
+            "*所有图片发送速度由网络状况而定";
 
     public InfoMessageHandler() {
-        keys = new String[] {"zaima", "status", "info", "读取设置", "更新索引"};
+        keys = new String[] {"zaima", "status", "info", "读取设置", "更新索引", "指令"};
     }
 
     @Override
@@ -35,6 +42,7 @@ public class InfoMessageHandler extends GroupMessageHandler {
 
     @Override
     public MessageChain reply() {
+        String message;
         switch (matched) {
             case "zaima":
                 return MessageUtils.newChain("buzai");
@@ -43,21 +51,19 @@ public class InfoMessageHandler extends GroupMessageHandler {
             case "info":
                 return MessageUtils.newChain(infoString);
             case "读取设置":
-                if (sender.getPermission() == MemberPermission.ADMINISTRATOR || sender.getPermission() == MemberPermission.OWNER) {
-                    if (Settings.initSettings())
-                        return MessageUtils.newChain("读取成功！");
-                    else
-                        return MessageUtils.newChain("读取失败！请检查settings.properties文件");
-                } else
-                    return MessageUtils.newChain("无权限。");
+                if (Settings.initSettings())
+                    message  = "读取成功！";
+                else
+                    message =  "读取失败！请检查settings.properties文件";
+                return MessageTool.needPermissionMessage(sender, MessageUtils.newChain(message));
             case "更新索引":
-                if (sender.getPermission() == MemberPermission.ADMINISTRATOR || sender.getPermission() == MemberPermission.OWNER) {
-                    if (ImageFileTool.updateTagJson())
-                        return MessageUtils.newChain("更新成功！");
-                    else
-                        return MessageUtils.newChain("更新失败！");
-                } else
-                    return MessageUtils.newChain("无权限。");
+                if (ImageFileTool.updateTagJson())
+                    message = "更新成功！";
+                else
+                    message = "更新失败！";
+                return MessageTool.needPermissionMessage(sender, MessageUtils.newChain(message));
+            case "指令":
+                return MessageUtils.newChain(zhiLin);
         }
         return null;
     }

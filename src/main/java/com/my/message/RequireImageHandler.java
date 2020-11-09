@@ -30,9 +30,10 @@ public class RequireImageHandler extends AsyncMessageHandler {
         return false;
     }
 
-    public void sendErrorMessage() {
-        sender.getGroup().sendMessage(MessageUtils.newChain("机器人想发一张网络色图，但没获取到，" +
-                "它心累了不想再尝试了，只好发张本地图凑合一下了。"));
+    public void sendErrorMessage(String error) {
+        sender.getGroup().sendMessage("机器人想发一张网络色图，但没获取到，" +
+                "它心累了不想再尝试了，只好发张本地图凑合一下了。\n" +
+                "错误：" + error);
         sender.getGroup().sendMessage(MessageTool.getRandomLocalImage(sender.getGroup(), getKeyword()));
     }
 
@@ -50,7 +51,7 @@ public class RequireImageHandler extends AsyncMessageHandler {
                 sender.getGroup().sendMessage(MessageTool.atMsg(sender, MessageUtils.newChain("在找了，在找了。")));
                 PixivImage info = NetImageTool.getSeTuInfo(getKeyword());
                 if (info == null) {
-                    sendErrorMessage();
+                    sendErrorMessage("接口调用失败！");
                     cur--;
                     return;
                 }
@@ -68,7 +69,7 @@ public class RequireImageHandler extends AsyncMessageHandler {
                         ).plus(imageInfo));
                     cur--;
                 } catch (Exception e) {
-                    sendErrorMessage();
+                    sendErrorMessage("发送图片失败，链接: " + info.url);
                     e.printStackTrace();
                 }
 

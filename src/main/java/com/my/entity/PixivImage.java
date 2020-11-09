@@ -27,6 +27,16 @@ public class PixivImage {
         this.tags = tags;
     }
 
+    public PixivImage(int pid, int p, int uid, String title, String author, String url, boolean r18) {
+        this.pid = pid;
+        this.p = p;
+        this.uid = uid;
+        this.title = title;
+        this.author = author;
+        this.url = url;
+        this.r18 = r18;
+    }
+
     @Override
     public String toString() {
         return "PixivImage{" +

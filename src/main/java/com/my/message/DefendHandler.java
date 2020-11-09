@@ -13,7 +13,7 @@ public class DefendHandler extends AtBotEventHandler {
 
     @Override
     public MessageChain reply() {
-        if (!MessageTool.checkAndMute(60, sender.getGroup(), sender)) {
+        if (!MessageTool.checkAndMute(5*60, sender.getGroup(), sender)) {
             return MessageTool.atMsg(sender, MessageUtils.newChain("机器人想禁言你，但没有权限，" +
                     "它心累了不想再尝试，只能口头表示抗议了。"));
         }

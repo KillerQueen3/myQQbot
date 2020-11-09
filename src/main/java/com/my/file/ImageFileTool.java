@@ -2,6 +2,7 @@ package com.my.file;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.my.util.Settings;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -33,6 +34,9 @@ public class ImageFileTool {
             }
         }
         if (map.size() > 0) {
+            tags = map;
+
+            // 将索引信息写入文件，但这个文件暂时没用到
             GsonBuilder builder = new GsonBuilder();
             builder.setPrettyPrinting();
             Gson gson = builder.create();
@@ -43,7 +47,6 @@ public class ImageFileTool {
                 outputStream.write(b);
                 outputStream.flush();
                 outputStream.close();
-                tags = map;
                 return true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -68,7 +71,9 @@ public class ImageFileTool {
             return null;
         try {
             BufferedImage bufferedImage = ImageIO.read(file);
-            bufferedImage.getGraphics().drawRect(0, 0, 2, 1);
+            if (Settings.includeR18) {
+                bufferedImage.getGraphics().drawRect(0, 0, 2, 1);
+            }
             return bufferedImage;
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,7 +85,7 @@ public class ImageFileTool {
         if (tags == null || tags.size() == 0) {
             return "无";
         }
-        StringBuilder builder = new StringBuilder("扫描到的tag:\n");
+        StringBuilder builder = new StringBuilder("存储的tag:\n");
         for (String t: tags.keySet()) {
             builder.append(t).append(" ");
         }

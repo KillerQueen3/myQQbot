@@ -45,7 +45,7 @@ public class ParameterHandler extends GroupMessageHandler {
             }
             if (res == null)
                 res = "狗屁不通文章生成失败，机器人心累了不想再尝试了。";
-            return MessageTool.atMsg(sender, MessageUtils.newChain(res));
+            return MessageUtils.newChain(res);
         } else if (matched.equals("本地图片")) {
             return MessageTool.getRandomLocalImage(sender.getGroup(), thing);
         }

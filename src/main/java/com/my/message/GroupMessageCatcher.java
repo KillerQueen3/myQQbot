@@ -18,6 +18,8 @@ public class GroupMessageCatcher {
         handlerList.add(new InfoMessageHandler());
         handlerList.add(new DefendHandler());
         handlerList.add(new RequireImageHandler());
+        handlerList.add(new QueryImageHandler());
+        handlerList.add(new RankHandler());
 
         RepeatMessage repeat = new RepeatMessage();
 

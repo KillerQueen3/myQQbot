@@ -21,7 +21,6 @@ public class Run {
             System.out.println("更新图片索引失败！");
         }
         Settings.readKeys();
-        MyBot.createThread();
         MessageTool.registerEvent(MyBot.bot, GroupMessageCatcher.getListener());
         MyBot.bot.join();
     }

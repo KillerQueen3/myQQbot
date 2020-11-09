@@ -15,6 +15,10 @@ public class Settings {
     public static String charSet;
     public static int gouPiLength;
     public static double imageScale;
+    public static boolean includeR18;
+    public static String pixivSize;
+    public static int pixivRankNum;
+    public static int pixivRankCD;
 
     public static boolean initSettings() {
         try {
@@ -22,11 +26,15 @@ public class Settings {
             botID = config.getLong("botQQ");
             botPW = config.getString("botPassword");
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            firstMonday = format.parse(config.getString("firstMonday"));
-            pyVersion = config.getString("pythonVersion");
-            charSet = config.getString("charSet");
-            gouPiLength = config.getInt("gouPiLength");
-            imageScale = config.getDouble("imageScale");
+            firstMonday = format.parse(config.getString("firstMonday", "2020-01-01"));
+            pyVersion = config.getString("pythonVersion", "python");
+            charSet = config.getString("charSet", "utf-8");
+            gouPiLength = config.getInt("gouPiLength", 400);
+            imageScale = config.getDouble("imageScale", 1.0);
+            includeR18 = config.getBoolean("includeR18", true);
+            pixivSize = config.getInt("pixivImgSize", 0) == 0? "medium": "large";
+            pixivRankCD = config.getInt("pixivRankCD", 10);
+            pixivRankNum = config.getInt("pixivRankNum", 5);
 
             System.out.println("设置读取成功！");
             return true;

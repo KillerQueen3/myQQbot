@@ -112,7 +112,7 @@ public class CourseDecoder {
         for (Course c: todayCourse) {
             String timeStr = "第" + (c.time + 1) + "节";
             builder.append("=====================\n").append(timeStr)
-                    .append("\n").append(c.name).append(c.place).append("\n");
+                    .append("\n").append(c.name).append("\n").append(c.place).append("\n");
         }
         return builder.toString();
     }

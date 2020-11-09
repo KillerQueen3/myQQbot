@@ -36,29 +36,4 @@ public class MyBot {
     public static void printFriends() {
         bot.getFriends().forEach(friend -> System.out.println(friend.getId() + ":" + friend.getNick()));
     }
-
-    public static void createThread() {
-        Thread checkLogin = new Thread(new CheckOnline());
-        checkLogin.setDaemon(true);
-        checkLogin.start();
-    }
-
-    static class CheckOnline implements Runnable {
-        @Override
-        public void run() {
-            while (true) {
-                if (!bot.isOnline()) {
-                    System.out.println("检测到bot掉线，重连中...");
-                    bot.login();
-                } else {
-                    System.out.println("bot在线！");
-                }
-                try {
-                    Thread.sleep(5 * 60 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 }
