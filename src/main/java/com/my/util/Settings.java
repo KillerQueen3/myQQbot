@@ -16,9 +16,10 @@ public class Settings {
     public static int gouPiLength;
     public static double imageScale;
     public static boolean includeR18;
-    public static String pixivSize;
+    public static boolean pixivLarge;
     public static int pixivRankNum;
     public static int pixivRankCD;
+    public static boolean pixivR18;
 
     public static boolean initSettings() {
         try {
@@ -32,10 +33,12 @@ public class Settings {
             gouPiLength = config.getInt("gouPiLength", 400);
             imageScale = config.getDouble("imageScale", 1.0);
             includeR18 = config.getBoolean("includeR18", true);
-            pixivSize = config.getInt("pixivImgSize", 0) == 0? "medium": "large";
+            pixivLarge = config.getBoolean("pixivImgLarge", false);
             pixivRankCD = config.getInt("pixivRankCD", 10);
             pixivRankNum = config.getInt("pixivRankNum", 5);
-
+            pixivR18 = config.getBoolean("pixivR18", false);
+            apiKey.clear();
+            apiKey.put("lolicon", config.getString("loliconApiKey"));
             System.out.println("设置读取成功！");
             return true;
         } catch (Exception e) {
@@ -45,16 +48,5 @@ public class Settings {
     }
 
     public static Map<String, String> apiKey = new HashMap<>();
-
-    public static void readKeys() {
-        try {
-            PropertiesConfiguration config = new PropertiesConfiguration("settings.properties");
-            apiKey.clear();
-            apiKey.put("lolicon", config.getString("loliconApiKey"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    public static final String H_IMG = "./resource/h.png";
 }

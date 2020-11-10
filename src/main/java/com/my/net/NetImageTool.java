@@ -15,24 +15,15 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 public class NetImageTool {
     final static String seTuApi = "https://api.lolicon.app/setu/";
     final static String pixivInfoApi = "https://api.imjad.cn/pixiv/v1/";
 
-    public static PixivImage getSeTuInfo(String keyword) {
-        keyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-        Map<String, String> param = new HashMap();
-        param.put("apikey", Settings.apiKey.get("lolicon"));
-        param.put("keyword", keyword);
-        param.put("size1200", "true");
-        param.put("r18", "2");
-        String t = HttpRequest.get(seTuApi).addHeader(param).connectTimeout(Duration.ofSeconds(5)).execute().asString();
+    public static PixivImage getSeTuInfo() {
+        String url = seTuApi + "?apikey=" + Settings.apiKey.get("lolicon") + "&size1200=true&r18=" + (Settings.pixivR18? "2": "0");
+        String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(5)).execute().asString();
         System.out.println(t);
         JsonObject object = (JsonObject) JsonParser.parseString(t);
         if (object.get("code").getAsInt() == 0) {
@@ -41,6 +32,18 @@ public class NetImageTool {
         } else {
             return null;
         }
+    }
+
+    public static PixivImage getSeTuInfo(String tag, int num) {
+        String url = pixivInfoApi + "?type=search&mode=tag&per_page=50&word=" + tag + " " + num;
+        System.out.println(url);
+        String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(5)).execute().asString();
+        JsonObject res = (JsonObject) JsonParser.parseString(t);
+        if (res.get("status").getAsString().equals("success")) {
+            JsonArray works = res.get("response").getAsJsonArray();
+            return getRandomUserImg(works);
+        }
+        return null;
     }
 
     public static BufferedImage getUrlImg(String url) {
@@ -77,6 +80,9 @@ public class NetImageTool {
     }
 
     public static BufferedImage reduceImage(BufferedImage image, double rate) {
+        if (image == null) {
+            return null;
+        }
         try {
             BufferedImage bufferedImage = Thumbnails.of(image).scale(rate).outputQuality(1f).asBufferedImage();
             return bufferedImage;
@@ -89,7 +95,6 @@ public class NetImageTool {
     public static PixivImage getInfoById(int id) {
         String string = HttpRequest.get(pixivInfoApi + "?type=illust&id=" + id)
                 .connectTimeout(Duration.ofSeconds(5)).execute().asString();
-        //System.out.println(string);
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(string);
         if (jsonObject.get("status").getAsString().equals("success")) {
             JsonObject imageInfo = jsonObject.get("response").getAsJsonArray().get(0).getAsJsonObject();
@@ -102,19 +107,16 @@ public class NetImageTool {
         int pid = imageInfo.get("id").getAsInt();
         String title = imageInfo.get("title").getAsString();
         JsonObject urlObject = imageInfo.get("image_urls").getAsJsonObject();
-        String urls;
-        if (!urlObject.has("medium") && Settings.pixivSize.equals("medium")) {
-            urls = urlObject.get("px_480mw").getAsString();
-        } else {
-            urls = urlObject.get(Settings.pixivSize).getAsString();
-        }
+        String urls = urlObject.get("px_480mw").getAsString();
+        String urlLarge = urlObject.get("large").getAsString();
+        urlLarge = urlLarge.replaceAll("i\\.pximg\\.net", "i.pixiv.cat");
         urls = urls.replaceAll("i\\.pximg\\.net", "i.pixiv.cat");
         JsonObject userInfo = imageInfo.get("user").getAsJsonObject();
         String user = userInfo.get("name").getAsString();
         int uid = userInfo.get("id").getAsInt();
         boolean r18 = imageInfo.get("age_limit").getAsString().equals("r18");
         int p = imageInfo.get("page_count").getAsInt();
-        return new PixivImage(pid, p, uid, title, user, urls, r18);
+        return new PixivImage(pid, p, uid, title, user, urls, urlLarge, r18);
     }
 
     private static JsonArray getUserImg(int id) {
@@ -156,5 +158,14 @@ public class NetImageTool {
             return images;
         }
         return null;
+    }
+
+    public static String originUrlToMedium(String raw) {
+        String t = raw.replaceAll("/img-original/", "/c/480x960/img-master/");
+        int i = t.lastIndexOf("/");
+        String a = t.substring(0, i);
+        String b = t.substring(i);
+        b = b.replaceAll("\\.", "_master1200\\.").replace("png", "jpg");
+        return a+b;
     }
 }

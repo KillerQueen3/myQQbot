@@ -37,7 +37,7 @@ public class RankHandler extends AsyncMessageHandler {
     public void newThreadStart() {
         String type = typeMap.get(matched);
         PixivImage[] images = NetImageTool.getRankInfo(type, num);
-        if (images == null) {
+        if (images == null || images.length == 0) {
             sender.getGroup().sendMessage("榜单获取失败！");
             cur--;
             return;
@@ -51,32 +51,38 @@ public class RankHandler extends AsyncMessageHandler {
                 @Override
                 public void run() {
                     PixivImage image = images[finalI];
-                    String imageInfo = "排名: " + (finalI + 1) +
-                            "\nid:" + image.pid +
-                            "\n标题: " + image.title + (image.r18? "(R18)": "") +
-                            "\n作者: " + image.author +
-                            "\nuid: " + image.uid +
-                            "\n链接:" + image.url;
-                    System.out.println("Getting " + image.url);
+                    String imageInfo = "\n排名: " + (finalI + 1) +
+                            "\n" + image.getNoUrlInfo() +
+                            "\n链接:" + image.urlLarge;
+                    String url = Settings.pixivLarge ? image.urlLarge : image.url;
+                    System.out.println("Getting " + url);
                     try {
                         if (!image.r18)
                             sender.getGroup().sendMessage(MessageUtils.newChain(
-                                    sender.getGroup().uploadImage(new URL(image.url))
+                                    sender.getGroup().uploadImage(new URL(url))
                                             ).plus(imageInfo));
                         else {
-                            BufferedImage bufferedImage = NetImageTool.getUrlImg(image.url);
-                            if (bufferedImage != null) {
-                                NetImageTool.r18Image(bufferedImage);
-                                sender.getGroup().sendMessage(MessageUtils.newChain(
-                                        sender.getGroup().uploadImage(bufferedImage))
-                                        .plus(imageInfo));
+                            if (Settings.pixivR18) {
+                                BufferedImage bufferedImage = NetImageTool.getUrlImg(url);
+                                if (bufferedImage != null) {
+                                    NetImageTool.r18Image(bufferedImage);
+                                    sender.getGroup().sendMessage(MessageUtils.newChain(
+                                            sender.getGroup().uploadImage(bufferedImage))
+                                            .plus(imageInfo));
+                                } else {
+                                    sendErrorMsg("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
+                                            image.urlLarge);
+                                }
                             } else {
-                                sendErrorMsg("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
-                                        image.url);
+                                Thread.sleep((long) (5000 * Math.random()));
+                                sender.getGroup().sendMessage(MessageUtils.newChain(
+                                        MessageTool.getLocalImage(
+                                                sender.getGroup(), Settings.H_IMG)
+                                ).plus(imageInfo));
                             }
                         }
                     } catch (Exception e) {
-                        sendErrorMsg("发送图片失败！\n链接: " + image.url);
+                        sendErrorMsg("发送图片失败！\n链接: " + image.urlLarge);
                         e.printStackTrace();
                     }
                 }

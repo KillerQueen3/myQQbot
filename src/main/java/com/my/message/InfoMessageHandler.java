@@ -8,20 +8,15 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
 
 public class InfoMessageHandler extends GroupMessageHandler {
-    private static final String infoString = "基于mirai的qq机器人，仅供个人学习之用。\n" +
+    private static final String infoString = "基于mirai的qq机器人，仅供个人学习交流之用。\n" +
             "项目地址: https://github.com/KillerQueen3/myQQbot\n" +
             "此机器人离不开许多开源项目:\n" +
             "mirai--https://github.com/mamoe/mirai\n" +
-            "狗屁不通生成器--https://github.com/menzi11/BullshitGenerator\n" +
+            "Pix-Ezviewer--https://github.com/Notsfsssf/Pix-EzViewer\n" +
             "...\n" +
             "*本机器人发送的所有文本及图像均来自网络或用户自行上传，因此产生的一切问题与作者及本机器人无关。";
 
-    private static final String zhiLin = "来点色图--随机pixiv图片（有限额）\n" +
-            "本地图片[标签]--来自搭建者本地的图片，可用的[标签]可使用“标签”指令查看\n" +
-            "[r18]日榜/周榜/月榜[数量]--查看pixiv榜单前[数量]（1-10）张作品（有延迟，有cd）\n" +
-            "查图[插画id]--查找pixiv作品id的信息\n" +
-            "作者[用户id]--查找pixiv用户的一张随机作品\n" +
-            "*所有图片发送速度由网络状况而定";
+    private static final String zhiLin = "见https://github.com/KillerQueen3/myQQbot";
 
     public InfoMessageHandler() {
         keys = new String[] {"zaima", "status", "info", "读取设置", "更新索引", "指令"};

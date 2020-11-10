@@ -2,9 +2,9 @@ package com.my.message;
 
 import com.my.entity.PixivImage;
 import com.my.net.NetImageTool;
+import com.my.util.Settings;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.MessageUtils;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -38,28 +38,33 @@ public class QueryImageHandler extends AsyncMessageHandler {
                     cur--;
                     return;
                 }
-                String message = "查找到的信息:\n============" +
-                        "\nid: " + imageInfo.pid +
-                        "\n标题: " + imageInfo.title + (imageInfo.r18? "(R18)": "") +
-                        "\n作者: " + imageInfo.author +
-                        "\nuid: " + imageInfo.uid +
-                        "\n\n正在发送图片...";
+                System.out.println(imageInfo);
+                String message = "查找到的信息:\n==============\n" +
+                        imageInfo.getNoUrlInfo() +
+                        "\n==============\n正在发送图片...";
+                String url = Settings.pixivLarge ? imageInfo.urlLarge : imageInfo.url;
                 sender.getGroup().sendMessage(message);
                 try {
                     if (!imageInfo.r18)
-                        sender.getGroup().sendMessage(sender.getGroup().uploadImage(new URL(imageInfo.url)));
+                        sender.getGroup().sendMessage(sender.getGroup().uploadImage(new URL(url)).plus("\n链接: " + imageInfo.urlLarge));
                     else {
-                        BufferedImage image = NetImageTool.getUrlImg(imageInfo.url);
-                        if (image != null) {
-                            NetImageTool.r18Image(image);
-                            sender.getGroup().sendMessage(sender.getGroup().uploadImage(image));
+                        if (Settings.pixivR18) {
+                            BufferedImage image = NetImageTool.getUrlImg(url);
+                            if (image != null) {
+                                NetImageTool.r18Image(image);
+                                sender.getGroup().sendMessage(sender.getGroup().uploadImage(image)
+                                        .plus("\n链接: " + imageInfo.urlLarge));
+                            } else {
+                                sendErrorMsg("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
+                                        imageInfo.urlLarge);
+                            }
                         } else {
-                            sendErrorMsg("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
-                                    imageInfo.url);
+                            sender.getGroup().sendMessage(MessageTool.getLocalImage(sender.getGroup(), Settings.H_IMG)
+                                    .plus("\n链接: " + imageInfo.urlLarge));
                         }
                     }
                 } catch (Exception e) {
-                    sendErrorMsg("发送图片失败！\n链接: " + imageInfo.url);
+                    sendErrorMsg("发送图片失败！\n链接: " + imageInfo.urlLarge);
                     e.printStackTrace();
                 }
                 cur--;

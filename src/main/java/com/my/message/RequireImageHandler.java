@@ -2,6 +2,8 @@ package com.my.message;
 
 import com.my.entity.PixivImage;
 import com.my.net.NetImageTool;
+import com.my.util.Settings;
+import com.my.util.Util;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
@@ -32,14 +34,13 @@ public class RequireImageHandler extends AsyncMessageHandler {
 
     public void sendErrorMessage(String error) {
         sender.getGroup().sendMessage("机器人想发一张网络色图，但没获取到，" +
-                "它心累了不想再尝试了，只好发张本地图凑合一下了。\n" +
+                "它心累了不想再尝试了。\n" +
                 "错误：" + error);
-        sender.getGroup().sendMessage(MessageTool.getRandomLocalImage(sender.getGroup(), getKeyword()));
     }
 
     public String getKeyword() {
         String s = source.contentToString();
-        s = s.replaceAll("[来点涩色图]", "");
+        s = s.replaceAll("[来点份张涩色图\\s]", "");
         return s;
     }
 
@@ -49,27 +50,50 @@ public class RequireImageHandler extends AsyncMessageHandler {
             @Override
             public void run() {
                 sender.getGroup().sendMessage(MessageTool.atMsg(sender, MessageUtils.newChain("在找了，在找了。")));
-                PixivImage info = NetImageTool.getSeTuInfo(getKeyword());
+                String keyword = getKeyword();
+                PixivImage info;
+                boolean hasKeyword = keyword==null || keyword.length()==0;
+                if (hasKeyword)
+                    info = NetImageTool.getSeTuInfo();
+                else {
+                    Object[] param = Util.getSeTuNum(keyword);
+                    info = NetImageTool.getSeTuInfo((String) param[0], (int) param[1]);
+                }
                 if (info == null) {
-                    sendErrorMessage("接口调用失败！");
+                    if (!hasKeyword)
+                        sendErrorMessage("图片信息获取失败！");
+                    else
+                        sendErrorMessage("未搜索到相关结果。");
                     cur--;
                     return;
                 }
-                System.out.println("抓取信息成功！");
-                BufferedImage image = null;
-                String imageInfo = "\n标题: " + info.title
-                        + "\npid: " + info.pid
-                        + "\n作者: " + info.author
-                        + "\n作者id" + info.uid
-                        + "\n链接: " + info.url;
+                if (info.urlLarge == null) {
+                    info.urlLarge = info.url;
+                    info.url = NetImageTool.originUrlToMedium(info.urlLarge);
+                }
+                System.out.println(info);
+                String url = Settings.pixivLarge ? info.urlLarge : info.url;
                 try {
-                    sender.getGroup().sendMessage(
-                            MessageUtils.newChain(
-                                    sender.getGroup().uploadImage(new URL(info.url))
-                        ).plus(imageInfo));
+                    MessageChain chain;
+                    if (!info.r18) {
+                        chain = MessageUtils.newChain(sender.getGroup().uploadImage(new URL(url)));
+                    } else if (Settings.pixivR18) {
+                        BufferedImage image = NetImageTool.getUrlImg(url);
+                        if (image == null) {
+                            sendErrorMessage("发送图片失败，链接: " + info.urlLarge);
+                            cur--;
+                            return;
+                        }
+                        NetImageTool.r18Image(image);
+                        chain = MessageUtils.newChain(sender.getGroup().uploadImage(image));
+                    } else {
+                        chain = MessageUtils.newChain(MessageTool.getLocalImage(sender.getGroup(), Settings.H_IMG));
+                    }
+                    chain = chain.plus("\n" + info.getNoUrlInfo() + "\n链接: " + info.urlLarge);
+                    sender.getGroup().sendMessage(chain);
                     cur--;
                 } catch (Exception e) {
-                    sendErrorMessage("发送图片失败，链接: " + info.url);
+                    sendErrorMessage("发送图片失败，链接: " + info.urlLarge);
                     e.printStackTrace();
                 }
 

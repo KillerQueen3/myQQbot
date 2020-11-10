@@ -9,6 +9,7 @@ public class PixivImage {
     public String title;
     public String author;
     public String url;
+    public String urlLarge;
     public boolean r18;
     public int width;
     public int height;
@@ -27,14 +28,22 @@ public class PixivImage {
         this.tags = tags;
     }
 
-    public PixivImage(int pid, int p, int uid, String title, String author, String url, boolean r18) {
+    public PixivImage(int pid, int p, int uid, String title, String author, String url, String urlLarge, boolean r18) {
         this.pid = pid;
         this.p = p;
         this.uid = uid;
         this.title = title;
         this.author = author;
         this.url = url;
+        this.urlLarge = urlLarge;
         this.r18 = r18;
+    }
+
+    public String getNoUrlInfo() {
+        return "pid: " + pid +
+                "\n标题: " + title + (r18 ? " (R18)" : "") +
+                "\n作者: " + author.replaceAll("@.*", "") +
+                "\nuid: " + uid;
     }
 
     @Override
@@ -46,6 +55,7 @@ public class PixivImage {
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", url='" + url + '\'' +
+                ", urlLarge='" + urlLarge + '\'' +
                 ", r18=" + r18 +
                 ", width=" + width +
                 ", height=" + height +

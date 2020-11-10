@@ -17,8 +17,8 @@ public class Util {
         String[] cut = matched.split("(?i)d");
         int num = Integer.parseInt(cut[0]);
         int max = Integer.parseInt(cut[1]);
-        if (num <= 0 || max <= 0) {
-            return -1;
+        if (num <= 0 || max <= 0 || num > 10000 || max > 10000) {
+            return -2;
         }
 
         int sum = 0;
@@ -27,5 +27,21 @@ public class Util {
             sum += random.nextInt(max) + 1;
         }
         return sum;
+    }
+
+    public static Object[] getSeTuNum(String raw) {
+        String regex = "\\d{1,3}000";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(raw);
+
+        if (!matcher.find()) {
+            return new Object[] {raw.replaceAll(regex, ""), 1000};
+        }
+
+        String matched = matcher.group();
+        int num = Integer.parseInt(matched);
+        if (num < 1000)
+            num = 1000;
+        return new Object[] {raw.replaceAll(regex, ""), num};
     }
 }

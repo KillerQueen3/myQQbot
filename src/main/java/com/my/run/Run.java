@@ -20,7 +20,6 @@ public class Run {
         } else {
             System.out.println("更新图片索引失败！");
         }
-        Settings.readKeys();
         MessageTool.registerEvent(MyBot.bot, GroupMessageCatcher.getListener());
         MyBot.bot.join();
     }
