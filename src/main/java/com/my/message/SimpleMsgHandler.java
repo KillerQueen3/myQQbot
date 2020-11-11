@@ -36,7 +36,8 @@ public class SimpleMsgHandler extends GroupMessageHandler {
             case "课程":
             case "课表":
                 String reply = CourseDecoder.readTodayCourse("./courses/" + sender.getId() + ".json");
-                return MessageTool.atMsg(sender, MessageUtils.newChain(reply));
+                return MessageTool.atMsg(sender,
+                        MessageTool.getLocalImage(sender.getGroup(), "./resource/course.png").plus("\n" + reply));
             case "标签":
                 return MessageUtils.newChain(ImageFileTool.getTag());
         }

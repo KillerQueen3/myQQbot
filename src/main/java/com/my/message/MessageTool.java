@@ -1,6 +1,7 @@
 package com.my.message;
 
 import com.my.bot.MyBot;
+import com.my.entity.PixivImage;
 import com.my.file.ImageFileTool;
 import com.my.net.NetImageTool;
 import com.my.util.Settings;
@@ -16,6 +17,7 @@ import net.mamoe.mirai.message.data.*;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,5 +91,32 @@ public class MessageTool {
             return message;
         } else
             return MessageUtils.newChain("无权限！");
+    }
+
+    public static Message uploadImage(PixivImage imageInfo, Group group) {
+        String url = Settings.pixivLarge ? imageInfo.urlLarge : imageInfo.url;
+        System.out.println("Getting " + url);
+        try {
+            if (!imageInfo.r18)
+                return group.uploadImage(new URL(url));
+            else {
+                if (Settings.pixivR18) {
+                    BufferedImage image = NetImageTool.getUrlImg(url);
+                    if (image != null) {
+                        NetImageTool.r18Image(image);
+                        return group.uploadImage(image);
+                    } else {
+                        group.sendMessage("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
+                                imageInfo.urlLarge);
+                    }
+                } else {
+                    return MessageTool.getLocalImage(group, Settings.H_IMG);
+                }
+            }
+        } catch (Exception e) {
+            group.sendMessage("发送图片失败！\n链接: " + imageInfo.urlLarge);
+            e.printStackTrace();
+        }
+        return null;
     }
 }

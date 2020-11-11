@@ -4,11 +4,9 @@ import com.my.entity.PixivImage;
 import com.my.net.NetImageTool;
 import com.my.util.Settings;
 import net.mamoe.mirai.contact.Member;
+import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.MessageUtils;
 
-import java.awt.image.BufferedImage;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -54,36 +52,9 @@ public class RankHandler extends AsyncMessageHandler {
                     String imageInfo = "\n排名: " + (finalI + 1) +
                             "\n" + image.getNoUrlInfo() +
                             "\n链接:" + image.urlLarge;
-                    String url = Settings.pixivLarge ? image.urlLarge : image.url;
-                    System.out.println("Getting " + url);
-                    try {
-                        if (!image.r18)
-                            sender.getGroup().sendMessage(MessageUtils.newChain(
-                                    sender.getGroup().uploadImage(new URL(url))
-                                            ).plus(imageInfo));
-                        else {
-                            if (Settings.pixivR18) {
-                                BufferedImage bufferedImage = NetImageTool.getUrlImg(url);
-                                if (bufferedImage != null) {
-                                    NetImageTool.r18Image(bufferedImage);
-                                    sender.getGroup().sendMessage(MessageUtils.newChain(
-                                            sender.getGroup().uploadImage(bufferedImage))
-                                            .plus(imageInfo));
-                                } else {
-                                    sendErrorMsg("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
-                                            image.urlLarge);
-                                }
-                            } else {
-                                Thread.sleep((long) (5000 * Math.random()));
-                                sender.getGroup().sendMessage(MessageUtils.newChain(
-                                        MessageTool.getLocalImage(
-                                                sender.getGroup(), Settings.H_IMG)
-                                ).plus(imageInfo));
-                            }
-                        }
-                    } catch (Exception e) {
-                        sendErrorMsg("发送图片失败！\n链接: " + image.urlLarge);
-                        e.printStackTrace();
+                    Message message = MessageTool.uploadImage(image, sender.getGroup());
+                    if (message != null) {
+                        sender.getGroup().sendMessage(message.plus(imageInfo));
                     }
                 }
             };
@@ -100,10 +71,6 @@ public class RankHandler extends AsyncMessageHandler {
             e.printStackTrace();
         }
         cur--;
-    }
-
-    private void sendErrorMsg(String msg) {
-        sender.getGroup().sendMessage(MessageUtils.newChain(msg));
     }
 
     @Override

@@ -2,14 +2,11 @@ package com.my.message;
 
 import com.my.entity.PixivImage;
 import com.my.net.NetImageTool;
-import com.my.util.Settings;
 import com.my.util.Util;
 import net.mamoe.mirai.contact.Member;
+import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
-
-import java.awt.image.BufferedImage;
-import java.net.URL;
 
 public class RequireImageHandler extends AsyncMessageHandler {
     public RequireImageHandler() {
@@ -72,31 +69,12 @@ public class RequireImageHandler extends AsyncMessageHandler {
                     info.url = NetImageTool.originUrlToMedium(info.urlLarge);
                 }
                 System.out.println(info);
-                String url = Settings.pixivLarge ? info.urlLarge : info.url;
-                try {
-                    MessageChain chain;
-                    if (!info.r18) {
-                        chain = MessageUtils.newChain(sender.getGroup().uploadImage(new URL(url)));
-                    } else if (Settings.pixivR18) {
-                        BufferedImage image = NetImageTool.getUrlImg(url);
-                        if (image == null) {
-                            sendErrorMessage("发送图片失败，链接: " + info.urlLarge);
-                            cur--;
-                            return;
-                        }
-                        NetImageTool.r18Image(image);
-                        chain = MessageUtils.newChain(sender.getGroup().uploadImage(image));
-                    } else {
-                        chain = MessageUtils.newChain(MessageTool.getLocalImage(sender.getGroup(), Settings.H_IMG));
-                    }
-                    chain = chain.plus("\n" + info.getNoUrlInfo() + "\n链接: " + info.urlLarge);
-                    sender.getGroup().sendMessage(chain);
-                    cur--;
-                } catch (Exception e) {
-                    sendErrorMessage("发送图片失败，链接: " + info.urlLarge);
-                    e.printStackTrace();
+                Message message = MessageTool.uploadImage(info, sender.getGroup());
+                if (message != null) {
+                    sender.getGroup().sendMessage(message.plus(info.getNoUrlInfo() + "\n链接: " + info.urlLarge));
                 }
 
+                cur--;
                 System.out.println("线程退出。");
             }
         });

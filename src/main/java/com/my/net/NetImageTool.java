@@ -30,6 +30,7 @@ public class NetImageTool {
             JsonObject info = object.getAsJsonArray("data").get(0).getAsJsonObject();
             return new Gson().fromJson(info, new TypeToken<PixivImage>(){}.getType());
         } else {
+            System.out.println("Get " + url + " failed!\nresponse: " + t);
             return null;
         }
     }
@@ -42,6 +43,8 @@ public class NetImageTool {
         if (res.get("status").getAsString().equals("success")) {
             JsonArray works = res.get("response").getAsJsonArray();
             return getRandomUserImg(works);
+        } else {
+            System.out.println("Get " + url + " failed!\nresponse: " + t);
         }
         return null;
     }
@@ -93,14 +96,17 @@ public class NetImageTool {
     }
 
     public static PixivImage getInfoById(int id) {
-        String string = HttpRequest.get(pixivInfoApi + "?type=illust&id=" + id)
+        String url = pixivInfoApi + "?type=illust&id=" + id;
+        String string = HttpRequest.get(url)
                 .connectTimeout(Duration.ofSeconds(5)).execute().asString();
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(string);
         if (jsonObject.get("status").getAsString().equals("success")) {
             JsonObject imageInfo = jsonObject.get("response").getAsJsonArray().get(0).getAsJsonObject();
             return decodeImgJSON(imageInfo);
-        } else
+        } else {
+            System.out.println("Get " + url + " failed!\nresponse: " + string);
             return null;
+        }
     }
 
     private static PixivImage decodeImgJSON(JsonObject imageInfo) {
@@ -125,6 +131,8 @@ public class NetImageTool {
         JsonObject res = (JsonObject) JsonParser.parseString(jsonStr);
         if (res.get("status").getAsString().equals("success")) {
            return res.get("response").getAsJsonArray();
+        } else {
+            System.out.println("Get " + url + " failed!\nresponse: " + jsonStr);
         }
         return null;
     }
@@ -156,6 +164,8 @@ public class NetImageTool {
                 images[work.get("rank").getAsInt() - 1] = decodeImgJSON(work.get("work").getAsJsonObject());
             }
             return images;
+        } else {
+            System.out.println("Get " + url + " failed!\nresponse: " + jsonStr);
         }
         return null;
     }
