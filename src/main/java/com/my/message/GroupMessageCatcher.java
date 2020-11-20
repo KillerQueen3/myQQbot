@@ -13,25 +13,26 @@ import java.util.List;
 public class GroupMessageCatcher {
     public static SimpleListenerHost getListener() {
         List<GroupMessageHandler> handlerList = new ArrayList<>();
-        handlerList.add(new SimpleMsgHandler());
+        //handlerList.add(new SimpleMsgHandler());
         handlerList.add(new ParameterHandler());
-        handlerList.add(new InfoMessageHandler());
+        //handlerList.add(new InfoMessageHandler());
         handlerList.add(new DefendHandler());
         handlerList.add(new RequireImageHandler());
         handlerList.add(new QueryImageHandler());
         handlerList.add(new RankHandler());
-        handlerList.add(new ImageSearchHandler());
+        //handlerList.add(new ImageSearchHandler());
 
-        RepeatMessage repeat = new RepeatMessage();
+        //RepeatMessage repeat = new RepeatMessage();
 
         SimpleListenerHost host = new SimpleListenerHost() {
             @EventHandler
             public ListeningStatus onGroupMessage(GroupMessageEvent event) {
                 MessageChain chain = event.getMessage();
                 MessageChain content = MessageTool.removeSource(chain);
+                /*
                 if (repeat.put(content)) {
                     event.getGroup().sendMessage(content);
-                }
+                }*/
                 for (GroupMessageHandler handler: handlerList) {
                     if (handler.accept(chain, event.getSender())) {
                         MessageChain reply = handler.reply();

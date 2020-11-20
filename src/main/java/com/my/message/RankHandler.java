@@ -45,17 +45,14 @@ public class RankHandler extends AsyncMessageHandler {
         ExecutorService service = Executors.newCachedThreadPool();
         for (int i = 0; i < num; i++) {
             int finalI = i;
-            Runnable runnable = new Runnable() {
-                @Override
-                public void run() {
-                    PixivImage image = images[finalI];
-                    String imageInfo = "\n排名: " + (finalI + 1) +
-                            "\n" + image.getNoUrlInfo() +
-                            "\n链接:" + image.urlLarge;
-                    Message message = MessageTool.uploadImage(image, sender.getGroup());
-                    if (message != null) {
-                        sender.getGroup().sendMessage(message.plus(imageInfo));
-                    }
+            Runnable runnable = () -> {
+                PixivImage image = images[finalI];
+                String imageInfo = "\n排名: " + (finalI + 1) +
+                        "\n" + image.getNoUrlInfo() +
+                        "\n链接:" + image.urlLarge;
+                Message message = MessageTool.uploadImage(image, sender.getGroup());
+                if (message != null) {
+                    sender.getGroup().sendMessage(message.plus(imageInfo));
                 }
             };
             service.submit(runnable);

@@ -15,6 +15,20 @@ public class PixivImage {
     public int height;
     public String[] tags;
 
+    public PixivImage(PixivImage image) {
+        this.pid = image.pid;
+        this.p = image.p;
+        this.uid = image.uid;
+        this.title = image.title;
+        this.author = image.author;
+        this.url = image.url;
+        this.r18 = image.r18;
+        this.width = image.width;
+        this.height = image.height;
+        this.tags = image.tags;
+        this.urlLarge = image.urlLarge;
+    }
+
     public PixivImage(int pid, int p, int uid, String title, String author, String url, boolean r18, int width, int height, String[] tags) {
         this.pid = pid;
         this.p = p;

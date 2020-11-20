@@ -1,10 +1,68 @@
 package com.my.util;
 
-import java.util.Random;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.my.entity.Chara;
+import com.my.entity.Trans;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+    public static Map<String, String> trans = getTrans();
+    public static Map<String, String> chara = getChara();
+
+    public static String getTrans(String keyword) {
+        if (chara.containsKey(keyword))
+            return chara.get(keyword);
+        if (trans.containsKey(keyword))
+            return trans.get(keyword);
+        return keyword;
+    }
+
+    public static Map<String, String> getTrans() {
+        Map<String, String> res = new HashMap<>();
+        try {
+            FileReader reader = new FileReader(new File("./resource/trans.json"));
+            Gson gson = new Gson();
+            List<Trans> json = gson.fromJson(reader, new TypeToken<List<Trans>>(){}.getType());
+            for (Trans t: json) {
+                if (t.translation !=null) {
+                    res.put(t.translation, t.text);
+                }
+            }
+            System.out.println("翻译读取成功！");
+            return res;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Map<String, String> getChara() {
+        try {
+            File file = new File("./resource/pcrChara.json");
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+            List<Chara> charas = new Gson().fromJson(br, new TypeToken<List<Chara>>(){}.getType());
+            Map<String, String> res = new HashMap<>();
+            for (Chara c: charas) {
+                String jpName = c.jp.replaceAll("\\(.*\\)|（.*）", "");
+                res.put(c.ch, jpName);
+                for (String n : c.nick) {
+                    res.put(n, jpName);
+                }
+            }
+            System.out.println("角色读取成功！");
+            return res;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static int roll(String cmd) {
         String regex = "(?i)\\d+d\\d+";
         Pattern pattern = Pattern.compile(regex);

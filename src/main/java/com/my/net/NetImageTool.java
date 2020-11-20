@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.internal.$Gson$Preconditions;
 import com.google.gson.reflect.TypeToken;
 import com.my.entity.PixivImage;
 import com.my.util.Settings;
@@ -16,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.Duration;
+import java.util.Arrays;
 
 public class NetImageTool {
     final static String seTuApi = "https://api.lolicon.app/setu/";
@@ -63,14 +65,18 @@ public class NetImageTool {
         }
     }
 
-    public static String[] getUrls(PixivImage image) {
+    public static PixivImage[] getUrls(PixivImage image) {
         if (image.p == 1)
-            return new String[] {image.url};
+            return new PixivImage[] {image};
         else {
-            String[] res = new String[image.p];
-            res[0] = image.url;
+            PixivImage im = new PixivImage(image);
+            PixivImage[] res = new PixivImage[image.p];
+            res[0] = image;
             for (int i = 1; i < image.p; i++) {
-                res[i] = image.url.replaceAll("_p0", "_p" + i);
+                PixivImage imm = new PixivImage(im);
+                imm.url = im.url.replaceAll("_p0", "_p" + i);
+                imm.urlLarge = im.urlLarge.replaceAll("_p0", "_p" + i);
+                res[i] = imm;
             }
             return res;
         }

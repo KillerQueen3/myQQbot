@@ -8,7 +8,7 @@ import net.mamoe.mirai.message.data.MessageUtils;
 
 public class ParameterHandler extends GroupMessageHandler {
     public ParameterHandler() {
-        keys = new String[] {"roll", "Roll", "ROLL", "狗屁不通", "本地图片"};
+        keys = new String[] {"本地图片"};
     }
 
     @Override
