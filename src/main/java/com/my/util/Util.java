@@ -30,37 +30,55 @@ public class Util {
             Gson gson = new Gson();
             List<Trans> json = gson.fromJson(reader, new TypeToken<List<Trans>>(){}.getType());
             for (Trans t: json) {
-                if (t.translation !=null) {
+                if (t.translation != null && t.translation.length()>0) {
                     res.put(t.translation, t.text);
                 }
             }
             System.out.println("翻译读取成功！");
-            return res;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return res;
     }
 
-    public static Map<String, String> getChara() {
+    public static Map<String, String> getCharaNames() {
+        Map<String, String> res = new HashMap<>();
         try {
             File file = new File("./resource/pcrChara.json");
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             List<Chara> charas = new Gson().fromJson(br, new TypeToken<List<Chara>>(){}.getType());
-            Map<String, String> res = new HashMap<>();
+            for (Chara c: charas) {
+                res.put(c.ch, c.ch);
+                res.put(c.jp, c.ch);
+                for (String n : c.nick) {
+                    res.put(n, c.ch);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+    public static Map<String, String> getChara() {
+        Map<String, String> res = new HashMap<>();
+        try {
+            File file = new File("./resource/pcrChara.json");
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+            List<Chara> charas = new Gson().fromJson(br, new TypeToken<List<Chara>>(){}.getType());
             for (Chara c: charas) {
                 String jpName = c.jp.replaceAll("\\(.*\\)|（.*）", "");
                 res.put(c.ch, jpName);
+                res.put(jpName, jpName);
                 for (String n : c.nick) {
                     res.put(n, jpName);
                 }
             }
             System.out.println("角色读取成功！");
-            return res;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return res;
     }
 
     public static int roll(String cmd) {

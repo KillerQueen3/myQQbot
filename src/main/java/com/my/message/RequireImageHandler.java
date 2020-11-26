@@ -30,10 +30,10 @@ public class RequireImageHandler extends AsyncMessageHandler {
                     return true;
                 }
             }
-        } else if (content.equals("不够色")) {
+        } else if (content.equals("不够色") || content.equals("再来点")) {
             source = s;
             sender = member;
-            matched = "不够色";
+            matched = "more";
             return true;
         }
         return false;
@@ -46,13 +46,13 @@ public class RequireImageHandler extends AsyncMessageHandler {
     }
 
     public Object[] getKeyword() {
-        if (matched.equals("不够色") && before != null) {
+        if (matched.equals("more") && before != null) {
             return new Object[]{before, bNum};
         } else {
             String s = source.contentToString();
             s = s.replaceAll("[来点份张涩色图\\s]", "");
             Object[] c = Util.getSeTuNum(s);
-            return new Object[]{Util.getTrans((String) c[0]), c[1]};
+            return new Object[]{c[0], Util.getTrans((String) c[0]), c[1]};
         }
     }
 
@@ -61,16 +61,17 @@ public class RequireImageHandler extends AsyncMessageHandler {
         Thread d = new Thread(() -> {
             Object[] param = getKeyword();
             String keyword = (String) param[0];
+            String trans = (String) param[1];
             boolean hasKeyword = !(keyword==null || keyword.length()==0);
             sender.getGroup().sendMessage(MessageTool.atMsg(sender,
                     MessageUtils.newChain("在找了，在找了。" +
-                            (hasKeyword? ("（关键词："+ keyword + "）") : ""))));
+                            (hasKeyword? ("（关键词: "+ keyword + "）") : ""))));
             PixivImage info;
 
             if (!hasKeyword)
                 info = NetImageTool.getSeTuInfo();
             else {
-                info = NetImageTool.getSeTuInfo(keyword, (int) param[1]);
+                info = NetImageTool.getSeTuInfo(keyword, trans, (int) param[2]);
             }
             if (info == null) {
                 if (!hasKeyword)
@@ -81,7 +82,7 @@ public class RequireImageHandler extends AsyncMessageHandler {
                 return;
             }
             before = keyword;
-            bNum = (int) param[1];
+            bNum = (int) param[2];
             if (info.urlLarge == null) {
                 info.urlLarge = info.url;
                 info.url = NetImageTool.originUrlToMedium(info.urlLarge);

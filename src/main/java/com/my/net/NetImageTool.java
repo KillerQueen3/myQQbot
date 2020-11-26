@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.internal.$Gson$Preconditions;
 import com.google.gson.reflect.TypeToken;
 import com.my.entity.PixivImage;
 import com.my.util.Settings;
@@ -17,7 +16,6 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.Duration;
-import java.util.Arrays;
 
 public class NetImageTool {
     final static String seTuApi = "https://api.lolicon.app/setu/";
@@ -37,13 +35,24 @@ public class NetImageTool {
         }
     }
 
-    public static PixivImage getSeTuInfo(String tag, int num) {
-        String url = pixivInfoApi + "?type=search&mode=tag&per_page=50&word=" + tag + " " + num;
+    public static PixivImage getSeTuInfo(String tag, String trans, int num) {
+        String url = pixivInfoApi + "?type=search&mode=tag&per_page=100&word=" + tag + " " + num;
         System.out.println(url);
         String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(5)).execute().asString();
         JsonObject res = (JsonObject) JsonParser.parseString(t);
         if (res.get("status").getAsString().equals("success")) {
             JsonArray works = res.get("response").getAsJsonArray();
+            if (works.size() < 10) {
+                url = pixivInfoApi + "?type=search&mode=tag&per_page=100&word=" + trans + " " + num;
+                System.out.println("Getting trans: " + url);
+                t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(5)).execute().asString();
+                res = (JsonObject) JsonParser.parseString(t);
+                if (res.get("status").getAsString().equals("success")) {
+                    JsonArray transImg = res.get("response").getAsJsonArray();
+                    works.addAll(transImg);
+                }
+            }
+            System.out.println("IMAGE NUMBER = " + works.size());
             return getRandomUserImg(works);
         } else {
             System.out.println("Get " + url + " failed!\nresponse: " + t);

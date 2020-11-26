@@ -2,7 +2,7 @@ package com.my.run;
 
 import com.my.bot.MyBot;
 import com.my.file.ImageFileTool;
-import com.my.message.GroupMessageCatcher;
+import com.my.message.MessageCatcher;
 import com.my.message.MessageTool;
 import com.my.util.Settings;
 
@@ -20,7 +20,7 @@ public class Run {
         } else {
             System.out.println("更新图片索引失败！");
         }
-        MessageTool.registerEvent(MyBot.bot, GroupMessageCatcher.getListener());
+        MessageTool.registerEvent(MyBot.bot, MessageCatcher.getListener());
         MyBot.bot.join();
     }
 }

@@ -1,6 +1,7 @@
 package com.my.message;
 
 import com.my.bot.MyBot;
+import com.my.clanBattle.ClanTool;
 import com.my.file.ImageFileTool;
 import com.my.util.Settings;
 import net.mamoe.mirai.contact.Member;
@@ -19,7 +20,8 @@ public class InfoMessageHandler extends GroupMessageHandler {
     private static final String zhiLin = "见https://github.com/KillerQueen3/myQQbot";
 
     public InfoMessageHandler() {
-        keys = new String[] {"zaima", "status", "info", "读取设置", "更新索引", "指令"};
+        keys = new String[] {"zaima", "=status", "=info", "=读作业",
+                "=读取设置", "=更新索引", "=指令"};
     }
 
     @Override
@@ -41,24 +43,28 @@ public class InfoMessageHandler extends GroupMessageHandler {
         switch (matched) {
             case "zaima":
                 return MessageUtils.newChain("buzai");
-            case "status":
+            case "=status":
                 return MessageUtils.newChain(statusString());
-            case "info":
+            case "=info":
                 return MessageUtils.newChain(infoString);
-            case "读取设置":
+            case "=读取设置":
                 if (Settings.initSettings())
                     message  = "读取成功！";
                 else
                     message =  "读取失败！请检查settings.properties文件";
                 return MessageTool.needPermissionMessage(sender, MessageUtils.newChain(message));
-            case "更新索引":
+            case "=更新索引":
                 if (ImageFileTool.updateTagJson())
                     message = "更新成功！";
                 else
                     message = "更新失败！";
                 return MessageTool.needPermissionMessage(sender, MessageUtils.newChain(message));
-            case "指令":
+            case "=指令":
                 return MessageUtils.newChain(zhiLin);
+            case "=读作业":
+                if (!ClanTool.reloadTeams())
+                    return MessageUtils.newChain("失败(可能是文件丢失或未记录作业)！");
+                return MessageUtils.newChain("成功！");
         }
         return null;
     }

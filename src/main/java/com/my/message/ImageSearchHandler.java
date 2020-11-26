@@ -14,7 +14,7 @@ public class ImageSearchHandler extends AsyncMessageHandler {
     Image image;
 
     public ImageSearchHandler() {
-        keys = new String[] {"搜图"};
+        keys = new String[] {"=搜图"};
         cur = 0;
         limit = 1;
     }

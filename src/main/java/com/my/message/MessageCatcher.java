@@ -10,17 +10,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GroupMessageCatcher {
+public class MessageCatcher {
     public static SimpleListenerHost getListener() {
         List<GroupMessageHandler> handlerList = new ArrayList<>();
-        //handlerList.add(new SimpleMsgHandler());
+        handlerList.add(new SimpleMsgHandler());
         handlerList.add(new ParameterHandler());
-        //handlerList.add(new InfoMessageHandler());
+        handlerList.add(new InfoMessageHandler());
         handlerList.add(new DefendHandler());
         handlerList.add(new RequireImageHandler());
         handlerList.add(new QueryImageHandler());
         handlerList.add(new RankHandler());
-        //handlerList.add(new ImageSearchHandler());
+        handlerList.add(new ImageSearchHandler());
+        ClanTeamHandler handler = new ClanTeamHandler();
 
         //RepeatMessage repeat = new RepeatMessage();
 
@@ -52,8 +53,9 @@ public class GroupMessageCatcher {
 
             @EventHandler
             public ListeningStatus onFriendMessageEvent(FriendMessageEvent event) {
-                MessageChain chain = event.getMessage();
-                event.getFriend().sendMessage(chain);
+                if (handler.accept(event.getMessage(), event.getSender())) {
+                    event.getFriend().sendMessage(handler.reply());
+                }
                 return ListeningStatus.LISTENING;
             }
 
