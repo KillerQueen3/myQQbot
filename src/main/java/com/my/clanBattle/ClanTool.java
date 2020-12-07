@@ -3,13 +3,16 @@ package com.my.clanBattle;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.my.util.Util;
+import com.my.util.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class ClanTool {
     public static List<Team> teamList = readTeams();
@@ -37,7 +40,7 @@ public class ClanTool {
 
         HashSet<String> set = new HashSet<>();
         String charasI = cut[2];
-        Map<String, String> names = Util.getCharaNames();
+        Map<String, String> names = Utils.getCharaNames();
         String[] charas = charasI.split(" ");
         if (charas.length != 5)
             return new Team(Team.NO_FIVE_CHARAS);
@@ -135,7 +138,7 @@ public class ClanTool {
     }
 
     public static List<Team> getBossTeam(String bossI, List<Team> teams) {
-        List<Team> res = new LinkedList<>();
+        List<Team> res = new ArrayList<>();
         bossI = bossI.toUpperCase();
         if (!bossI.matches("^[A-D][1-5]$")) {
             return null;
@@ -153,4 +156,6 @@ public class ClanTool {
         }
         return res;
     }
+
+
 }

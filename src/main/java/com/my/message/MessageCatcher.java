@@ -21,7 +21,10 @@ public class MessageCatcher {
         handlerList.add(new QueryImageHandler());
         handlerList.add(new RankHandler());
         handlerList.add(new ImageSearchHandler());
-        ClanTeamHandler handler = new ClanTeamHandler();
+
+        List<FriendMessageHandler> friendMessageHandlers = new ArrayList<>();
+        friendMessageHandlers.add(new ForwardImage());
+        friendMessageHandlers.add(new ClanTeamHandler());
 
         //RepeatMessage repeat = new RepeatMessage();
 
@@ -53,8 +56,13 @@ public class MessageCatcher {
 
             @EventHandler
             public ListeningStatus onFriendMessageEvent(FriendMessageEvent event) {
-                if (handler.accept(event.getMessage(), event.getSender())) {
-                    event.getFriend().sendMessage(handler.reply());
+                for (FriendMessageHandler handler: friendMessageHandlers) {
+                    if (handler.accept(event.getMessage(), event.getSender())) {
+                        MessageChain message = handler.reply();
+                        if (message != null) {
+                            event.getFriend().sendMessage(message);
+                        }
+                    }
                 }
                 return ListeningStatus.LISTENING;
             }

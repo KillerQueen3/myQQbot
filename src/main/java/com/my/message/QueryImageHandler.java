@@ -35,7 +35,7 @@ public class QueryImageHandler extends AsyncMessageHandler {
             }
             System.out.println(imageInfo);
             String message = "查找到的信息:\n==============\n" +
-                    imageInfo.getNoUrlInfo() + ((imageInfo.p > 1) ? "\n有" + imageInfo.p + "张图片" : "") +
+                    imageInfo.getNoUrlInfo() +
                     "\n==============\n正在发送图片...";
             sender.getGroup().sendMessage(message);
             if (matched.equals("全图") && imageInfo.p > 1) {

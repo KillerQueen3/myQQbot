@@ -56,4 +56,6 @@ public class ClanTeamHandler extends FriendMessageHandler {
         }
         return MessageUtils.newChain("错误！" + error);
     }
+
+
 }

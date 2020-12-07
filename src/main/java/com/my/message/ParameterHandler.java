@@ -3,7 +3,7 @@ package com.my.message;
 import com.my.clanBattle.ClanTool;
 import com.my.clanBattle.Team;
 import com.my.net.NetTexts;
-import com.my.util.Util;
+import com.my.util.Utils;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
@@ -12,7 +12,10 @@ import java.util.List;
 
 public class ParameterHandler extends GroupMessageHandler {
     public ParameterHandler() {
-        keys = new String[] {"=本地图片", "=roll", "=狗屁不通", "=作业", "=详细", "=删除"};
+        keys = new String[] {//"=本地图片",
+                "=roll", "=狗屁不通",
+                "=作业", "=详细", "=删除"
+        };
     }
 
     @Override
@@ -35,7 +38,7 @@ public class ParameterHandler extends GroupMessageHandler {
         String thing = source.contentToString().replaceFirst(matched, "").replaceAll(" ", "");
         if (matched.equalsIgnoreCase("=roll")) {
             needQuote = true;
-            int roll = Util.roll(source.contentToString());
+            int roll = Utils.roll(source.contentToString());
             if (roll > 0)
                 return MessageTool.atMsg(sender,  MessageUtils.newChain("结果：" + roll));
             else
@@ -71,6 +74,7 @@ public class ParameterHandler extends GroupMessageHandler {
             } else
                 return MessageUtils.newChain("失败！");
         }
+
         return null;
     }
 }

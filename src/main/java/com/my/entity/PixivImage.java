@@ -57,7 +57,8 @@ public class PixivImage {
         return "pid: " + pid +
                 "\n标题: " + title + (r18 ? " (R18)" : "") +
                 "\n作者: " + author.replaceAll("@.*", "") +
-                "\nuid: " + uid;
+                "\nuid: " + uid +
+                (p > 1? "\n有" + p + "张图片": "");
     }
 
     @Override

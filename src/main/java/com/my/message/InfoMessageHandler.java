@@ -4,6 +4,7 @@ import com.my.bot.MyBot;
 import com.my.clanBattle.ClanTool;
 import com.my.file.ImageFileTool;
 import com.my.util.Settings;
+import com.my.util.Utils;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
@@ -21,7 +22,8 @@ public class InfoMessageHandler extends GroupMessageHandler {
 
     public InfoMessageHandler() {
         keys = new String[] {"zaima", "=status", "=info", "=读作业",
-                "=读取设置", "=更新索引", "=指令"};
+                "=读取设置", //"=更新索引",
+                "=指令", "=reload"};
     }
 
     @Override
@@ -52,19 +54,25 @@ public class InfoMessageHandler extends GroupMessageHandler {
                     message  = "读取成功！";
                 else
                     message =  "读取失败！请检查settings.properties文件";
-                return MessageTool.needPermissionMessage(sender, MessageUtils.newChain(message));
+                return MessageUtils.newChain(message);
             case "=更新索引":
                 if (ImageFileTool.updateTagJson())
                     message = "更新成功！";
                 else
                     message = "更新失败！";
-                return MessageTool.needPermissionMessage(sender, MessageUtils.newChain(message));
+                return MessageUtils.newChain(message);
             case "=指令":
                 return MessageUtils.newChain(zhiLin);
+            case "=reload":
+                Utils.reload();
+                return MessageUtils.newChain("完成");
+
             case "=读作业":
                 if (!ClanTool.reloadTeams())
                     return MessageUtils.newChain("失败(可能是文件丢失或未记录作业)！");
                 return MessageUtils.newChain("成功！");
+
+
         }
         return null;
     }

@@ -9,7 +9,8 @@ import net.mamoe.mirai.message.data.MessageUtils;
 
 public class SimpleMsgHandler extends GroupMessageHandler {
     public SimpleMsgHandler() {
-        keys = new String[]{"=夸我", "=骂我", "=课程", "=课表", "=标签"};
+        keys = new String[]{"=夸我", "=骂我", "=课程", "=课表", //"=标签"
+        };
     }
 
     @Override

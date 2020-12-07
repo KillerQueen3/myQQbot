@@ -86,11 +86,8 @@ public class MessageTool {
             return MessageUtils.newChain("机器人想发一张本地图片，但获取失败了，它心累了不想再发了。");
     }
 
-    public static MessageChain needPermissionMessage(Member sender, MessageChain message) {
-        if (sender.getPermission() == MemberPermission.ADMINISTRATOR || sender.getPermission() == MemberPermission.OWNER) {
-            return message;
-        } else
-            return MessageUtils.newChain("无权限！");
+    public static boolean needPermission(Member sender) {
+        return sender.getPermission() == MemberPermission.ADMINISTRATOR || sender.getPermission() == MemberPermission.OWNER;
     }
 
     public static Message uploadImage(PixivImage imageInfo, Group group) {

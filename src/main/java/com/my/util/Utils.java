@@ -11,9 +11,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Util {
-    public static Map<String, String> trans = getTrans();
-    public static Map<String, String> chara = getChara();
+public class Utils {
+    public static Map<String, String> trans = new HashMap<>();
+    public static Map<String, String> chara = new HashMap<>();
 
     public static String getTrans(String keyword) {
         if (chara.containsKey(keyword))
@@ -23,7 +23,23 @@ public class Util {
         return keyword;
     }
 
-    public static Map<String, String> getTrans() {
+    public static String autoComplete(String src) {
+        for (String x: trans.keySet()) {
+            if (x.contains(src)) {
+                return trans.get(x);
+            }
+        }
+        return null;
+    }
+
+    public static void reload() {
+        trans.clear();
+        trans.putAll(getTrans());
+        chara.clear();
+        chara.putAll(getChara());
+    }
+
+    private static Map<String, String> getTrans() {
         Map<String, String> res = new HashMap<>();
         try {
             FileReader reader = new FileReader(new File("./resource/trans.json"));
@@ -60,14 +76,14 @@ public class Util {
         return res;
     }
 
-    public static Map<String, String> getChara() {
+    private static Map<String, String> getChara() {
         Map<String, String> res = new HashMap<>();
         try {
             File file = new File("./resource/pcrChara.json");
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             List<Chara> charas = new Gson().fromJson(br, new TypeToken<List<Chara>>(){}.getType());
             for (Chara c: charas) {
-                String jpName = c.jp.replaceAll("\\(.*\\)|（.*）", "");
+                String jpName = c.jp.replaceAll("\\(.*\\)|（.*）", "") + "（プリコネ）";
                 res.put(c.ch, jpName);
                 res.put(jpName, jpName);
                 for (String n : c.nick) {
@@ -106,18 +122,28 @@ public class Util {
     }
 
     public static Object[] getSeTuNum(String raw) {
-        String regex = "\\d{1,3}000";
+        String regex = "\\d{1,4}00";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(raw);
 
+        boolean r18 = false;
+        if (raw.contains("R18") || raw.contains("r18")) {
+            r18 = true;
+            raw = raw.replaceFirst("[rR]18", "");
+        }
+
+        if (raw.contains("-")) {
+            return new Object[] {raw.replaceAll("-", ""), 0, r18};
+        }
+
         if (!matcher.find()) {
-            return new Object[] {raw.replaceAll(regex, ""), 1000};
+            return new Object[] {raw.replaceAll(regex, ""), 1000, r18};
         }
 
         String matched = matcher.group();
         int num = Integer.parseInt(matched);
         if (num < 1000)
             num = 1000;
-        return new Object[] {raw.replaceAll(regex, ""), num};
+        return new Object[] {raw.replaceAll(regex, ""), num, r18};
     }
 }
