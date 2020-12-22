@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ParameterHandler extends GroupMessageHandler {
     public ParameterHandler() {
-        keys = new String[] {//"=本地图片",
+        keys = new String[] {
                 "=roll", "=狗屁不通",
                 "=作业", "=详细", "=删除"
         };
@@ -53,8 +53,6 @@ public class ParameterHandler extends GroupMessageHandler {
             if (res == null)
                 res = "狗屁不通文章生成失败，机器人心累了不想再尝试了。";
             return MessageUtils.newChain(res);
-        } else if (matched.equals("=本地图片")) {
-            return MessageTool.getRandomLocalImage(sender.getGroup(), thing);
         } else if (matched.equals("=作业") || matched.equals("=详细")) {
             List<Team> t = ClanTool.getBossTeam(thing, ClanTool.teamList);
             if (t == null) {

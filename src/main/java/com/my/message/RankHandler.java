@@ -49,7 +49,7 @@ public class RankHandler extends AsyncMessageHandler {
                 PixivImage image = images[finalI];
                 String imageInfo = "\n排名: " + (finalI + 1) +
                         "\n" + image.getNoUrlInfo() +
-                        "\n链接:" + image.urlLarge;
+                        "\n链接:" + image.originalUrl;
                 Message message = MessageTool.uploadImage(image, sender.getGroup());
                 if (message != null) {
                     sender.getGroup().sendMessage(message.plus(imageInfo));

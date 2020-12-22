@@ -2,8 +2,8 @@ package com.my.message;
 
 import com.my.bot.MyBot;
 import com.my.entity.PixivImage;
-import com.my.file.ImageFileTool;
 import com.my.net.NetImageTool;
+import com.my.util.MyLog;
 import com.my.util.Settings;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MessageTool {
-
     public static void registerEvent(Bot bot, SimpleListenerHost listenerHost) {
         Events.registerEvents(bot, listenerHost);
     }
@@ -74,25 +73,13 @@ public class MessageTool {
                 "image not found: " + fileName);
     }
 
-    public static MessageChain getRandomLocalImage(Group group, String tag) {
-        if (tag == null || tag.length() == 0) {
-            tag = "default";
-        }
-        BufferedImage image = ImageFileTool.localRandomImage(tag);
-        image = NetImageTool.reduceImage(image, Settings.imageScale);
-        if (image != null) {
-            return MessageUtils.newChain(group.uploadImage(image));
-        } else
-            return MessageUtils.newChain("机器人想发一张本地图片，但获取失败了，它心累了不想再发了。");
-    }
-
-    public static boolean needPermission(Member sender) {
+    public static boolean checkPermission(Member sender) {
         return sender.getPermission() == MemberPermission.ADMINISTRATOR || sender.getPermission() == MemberPermission.OWNER;
     }
 
     public static Message uploadImage(PixivImage imageInfo, Group group) {
-        String url = Settings.pixivLarge ? imageInfo.urlLarge : imageInfo.url;
-        System.out.println("Getting " + url);
+        String url = imageInfo.url;
+        MyLog.info("Send image: " + url);
         try {
             if (!imageInfo.r18)
                 return group.uploadImage(new URL(url));
@@ -104,15 +91,15 @@ public class MessageTool {
                         return group.uploadImage(image);
                     } else {
                         group.sendMessage("机器人想从网上找图发，但是失败了，它心累了不想重试了。\n链接: " +
-                                imageInfo.urlLarge);
+                                imageInfo.originalUrl);
                     }
                 } else {
                     return MessageTool.getLocalImage(group, Settings.H_IMG);
                 }
             }
         } catch (Exception e) {
-            group.sendMessage("发送图片失败！\n链接: " + imageInfo.urlLarge);
-            e.printStackTrace();
+            group.sendMessage("发送图片失败！\n链接: " + imageInfo.originalUrl);
+            MyLog.error(e);
         }
         return null;
     }

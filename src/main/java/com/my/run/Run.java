@@ -3,6 +3,7 @@ package com.my.run;
 import com.my.bot.MyBot;
 import com.my.message.MessageCatcher;
 import com.my.message.MessageTool;
+import com.my.net.NetImageTool;
 import com.my.util.Settings;
 import com.my.util.Utils;
 
@@ -15,14 +16,9 @@ public class Run {
         if (!MyBot.login()) {
             System.exit(-1);
         }
-        /*
-        if (ImageFileTool.updateTagJson()) {
-            System.out.println("更新图片索引成功");
-        } else {
-            System.out.println("更新图片索引失败！");
-        }
-        */
         Utils.reload();
+        NetImageTool.autoLoginThreadStart(Settings.pixivInterval);
+        //System.out.println(NetImageTool.pixivLogin()? "pixiv登陆成功": "pixiv登录失败！");
         MessageTool.registerEvent(MyBot.bot, MessageCatcher.getListener());
         MyBot.bot.join();
     }

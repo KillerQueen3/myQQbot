@@ -58,8 +58,7 @@ public class ImageSearchHandler extends AsyncMessageHandler {
     public boolean accept(MessageChain s, Member member) {
         String c = s.contentToString();
         for (String key: keys) {
-            if (c.startsWith(key)) {
-
+            if (c.contains(key)) {
                 for (Message m : s) {
                     if (m instanceof Image) {
                         image = (Image) m;

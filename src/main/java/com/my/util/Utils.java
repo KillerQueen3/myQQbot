@@ -1,6 +1,8 @@
 package com.my.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.my.entity.Chara;
 import com.my.entity.Trans;
@@ -23,13 +25,14 @@ public class Utils {
         return keyword;
     }
 
-    public static String autoComplete(String src) {
+    public static List<String> autoComplete(String src) {
+        List<String> res = new ArrayList<>();
         for (String x: trans.keySet()) {
             if (x.contains(src)) {
-                return trans.get(x);
+                res.add(trans.get(x));
             }
         }
-        return null;
+        return res;
     }
 
     public static void reload() {
@@ -83,7 +86,7 @@ public class Utils {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             List<Chara> charas = new Gson().fromJson(br, new TypeToken<List<Chara>>(){}.getType());
             for (Chara c: charas) {
-                String jpName = c.jp.replaceAll("\\(.*\\)|（.*）", "") + "（プリコネ）";
+                String jpName = c.jp.replaceAll("\\(.*\\)|（.*）", "") + " プリコネ";
                 res.put(c.ch, jpName);
                 res.put(jpName, jpName);
                 for (String n : c.nick) {
@@ -122,7 +125,7 @@ public class Utils {
     }
 
     public static Object[] getSeTuNum(String raw) {
-        String regex = "\\d{1,4}00";
+        String regex = "\\d{1,5}0";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(raw);
 
@@ -145,5 +148,63 @@ public class Utils {
         if (num < 1000)
             num = 1000;
         return new Object[] {raw.replaceAll(regex, ""), num, r18};
+    }
+
+    private static final String SEARCH_CACHE = "./resource/search.json";
+
+    private static Map<String, JsonArray> readSearchCache() {
+        try {
+            File file = new File(SEARCH_CACHE);
+            if (!file.exists()) {
+                file.createNewFile();
+                return new HashMap<>();
+            }
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+            Map<String, JsonArray> res = new Gson().fromJson(br, new TypeToken<Map<String, JsonArray>>(){}.getType());
+            br.close();
+            if (res == null)
+                return new HashMap<>();
+            return res;
+        } catch (IOException e) {
+            MyLog.error(e);
+            return new HashMap<>();
+        }
+    }
+
+    public static JsonArray getSearchCache(String tag) {
+        Map<String, JsonArray> read = readSearchCache();
+        return read.getOrDefault(tag, null);
+    }
+
+    public static boolean clearCache() {
+        try {
+            FileWriter fileWriter =new FileWriter(new File(SEARCH_CACHE));
+            fileWriter.write("");
+            fileWriter.flush();
+            fileWriter.close();
+            MyLog.info("CLEAR CACHE");
+            return true;
+        } catch (Exception e) {
+            MyLog.error(e);
+            return false;
+        }
+    }
+
+    public static void writeSearchCache(String tag, JsonArray search) {
+        Map<String, JsonArray> read = readSearchCache();
+        if (read.containsKey(tag))
+            return;
+        read.put(tag, search);
+        Gson gson = new Gson();
+        String json = gson.toJson(read);
+        try {
+            FileOutputStream fos = new FileOutputStream(new File(SEARCH_CACHE));
+            fos.write(json.getBytes(StandardCharsets.UTF_8));
+            fos.flush();
+            fos.close();
+            MyLog.info("WRITE CACHE: TAG=" + tag + " SIZE=" + search.size());
+        } catch (Exception e) {
+            MyLog.error(e);
+        }
     }
 }

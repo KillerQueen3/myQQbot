@@ -1,6 +1,7 @@
 package com.my.entity;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class PixivImage {
     public int pid;
@@ -9,7 +10,7 @@ public class PixivImage {
     public String title;
     public String author;
     public String url;
-    public String urlLarge;
+    public String originalUrl;
     public boolean r18;
     public int width;
     public int height;
@@ -26,30 +27,21 @@ public class PixivImage {
         this.width = image.width;
         this.height = image.height;
         this.tags = image.tags;
-        this.urlLarge = image.urlLarge;
+        this.originalUrl = image.originalUrl;
     }
 
-    public PixivImage(int pid, int p, int uid, String title, String author, String url, boolean r18, int width, int height, String[] tags) {
+    public PixivImage(int pid) {
+        this.pid = pid;
+    }
+
+    public PixivImage(int pid, int p, int uid, String title, String author, String url, String originalUrl, boolean r18) {
         this.pid = pid;
         this.p = p;
         this.uid = uid;
         this.title = title;
         this.author = author;
         this.url = url;
-        this.r18 = r18;
-        this.width = width;
-        this.height = height;
-        this.tags = tags;
-    }
-
-    public PixivImage(int pid, int p, int uid, String title, String author, String url, String urlLarge, boolean r18) {
-        this.pid = pid;
-        this.p = p;
-        this.uid = uid;
-        this.title = title;
-        this.author = author;
-        this.url = url;
-        this.urlLarge = urlLarge;
+        this.originalUrl = originalUrl;
         this.r18 = r18;
     }
 
@@ -70,11 +62,26 @@ public class PixivImage {
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", url='" + url + '\'' +
-                ", urlLarge='" + urlLarge + '\'' +
+                ", originalUrl='" + originalUrl + '\'' +
                 ", r18=" + r18 +
                 ", width=" + width +
                 ", height=" + height +
                 ", tags=" + Arrays.toString(tags) +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PixivImage image = (PixivImage) o;
+        return pid == image.pid;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pid);
+    }
+
+    public static final PixivImage NO_MORE_PICTURES = new PixivImage(-1);
 }

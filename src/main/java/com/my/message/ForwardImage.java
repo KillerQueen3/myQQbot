@@ -2,6 +2,7 @@ package com.my.message;
 
 import com.my.bot.MyBot;
 import com.my.net.NetImageTool;
+import com.my.util.MyLog;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
@@ -56,18 +57,22 @@ public class ForwardImage extends FriendMessageHandler {
             return MessageUtils.newChain("您不在此群中！");
         }
         sender.sendMessage("处理中...");
-        String imageUrl = "http://gchat.qpic.cn/gchatpic_new/0/0-0-" +
-                image.getImageId().split("-")[2] +
-                "/0?term=2";
-        BufferedImage bufferedImage = NetImageTool.getUrlImg(imageUrl);
-        if (bufferedImage == null) {
-            return MessageUtils.newChain("失败！");
-        }
-        NetImageTool.r18Image(bufferedImage);
+        new Thread(() -> {
+            String imageUrl = "http://gchat.qpic.cn/gchatpic_new/0/0-0-" +
+                    image.getImageId().split("-")[2] +
+                    "/0?term=2";
+            MyLog.info("Forward from: " + friendId + " To: " + id);
+            BufferedImage bufferedImage = NetImageTool.getUrlImg(imageUrl);
+            if (bufferedImage == null) {
+                sender.sendMessage("失败！");
+                return;
+            }
+            NetImageTool.r18Image(bufferedImage);
 
-        targetGroup.sendMessage(MessageUtils.newChain("from ").plus(new At(m))
-                .plus(targetGroup.uploadImage(bufferedImage)));
-        sender.sendMessage("成功！");
+            targetGroup.sendMessage(MessageUtils.newChain("from ").plus(new At(m))
+                    .plus(targetGroup.uploadImage(bufferedImage)));
+            sender.sendMessage("成功！");
+        }).start();
         return null;
     }
 }

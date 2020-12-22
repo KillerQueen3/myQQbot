@@ -44,6 +44,4 @@ public class NetTexts {
         }
         return null;
     }
-
-
 }

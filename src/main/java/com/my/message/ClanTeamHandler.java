@@ -7,11 +7,11 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
 
 public class ClanTeamHandler extends FriendMessageHandler {
-    Team t;
-    int state;
-    final String error = "格式\n=boss名-自动/手动-五个角色名(空格分开)-伤害-v=视频地址-i=备注(后两个可不要)" +
+    private static final String error = "格式\n=boss名-自动/手动-五个角色名(空格分开)-伤害-v=视频地址-i=备注(后两个可不要)" +
             "如:\n=d5-手动-镜华 美美 美咲 胡桃 绫音-100 或" +
             "\n=d5-自动-镜华 美美 美咲 胡桃 绫音-100-v=视频地址-i=备注";
+    Team t;
+    int state;
 
     public ClanTeamHandler() {
 

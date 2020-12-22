@@ -2,7 +2,8 @@ package com.my.message;
 
 import com.my.bot.MyBot;
 import com.my.clanBattle.ClanTool;
-import com.my.file.ImageFileTool;
+import com.my.net.NetImageTool;
+import com.my.util.Records;
 import com.my.util.Settings;
 import com.my.util.Utils;
 import net.mamoe.mirai.contact.Member;
@@ -10,20 +11,11 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageUtils;
 
 public class InfoMessageHandler extends GroupMessageHandler {
-    private static final String infoString = "基于mirai的qq机器人，仅供个人学习交流之用。\n" +
-            "项目地址: https://github.com/KillerQueen3/myQQbot\n" +
-            "此机器人离不开许多开源项目:\n" +
-            "mirai--https://github.com/mamoe/mirai\n" +
-            "Pix-Ezviewer--https://github.com/Notsfsssf/Pix-EzViewer\n" +
-            "...\n" +
-            "*本机器人发送的所有文本及图像均来自网络或用户自行上传，因此产生的一切问题与作者及本机器人无关。";
-
     private static final String zhiLin = "见https://github.com/KillerQueen3/myQQbot";
 
     public InfoMessageHandler() {
-        keys = new String[] {"zaima", "=status", "=info", "=读作业",
-                "=读取设置", //"=更新索引",
-                "=指令", "=reload"};
+        keys = new String[] {"zaima", "=status", "=读作业",
+                "=读取设置", "=指令", "=reload", "=clean", "=登录", "=清除缓存"};
     }
 
     @Override
@@ -47,32 +39,34 @@ public class InfoMessageHandler extends GroupMessageHandler {
                 return MessageUtils.newChain("buzai");
             case "=status":
                 return MessageUtils.newChain(statusString());
-            case "=info":
-                return MessageUtils.newChain(infoString);
             case "=读取设置":
                 if (Settings.initSettings())
                     message  = "读取成功！";
                 else
                     message =  "读取失败！请检查settings.properties文件";
                 return MessageUtils.newChain(message);
-            case "=更新索引":
-                if (ImageFileTool.updateTagJson())
-                    message = "更新成功！";
-                else
-                    message = "更新失败！";
-                return MessageUtils.newChain(message);
             case "=指令":
                 return MessageUtils.newChain(zhiLin);
             case "=reload":
                 Utils.reload();
                 return MessageUtils.newChain("完成");
-
             case "=读作业":
                 if (!ClanTool.reloadTeams())
                     return MessageUtils.newChain("失败(可能是文件丢失或未记录作业)！");
                 return MessageUtils.newChain("成功！");
-
-
+            case "=clean":
+                if (Records.clearRecords()) {
+                    return MessageUtils.newChain("成功！");
+                }
+                else
+                    return MessageUtils.newChain("失败！");
+            case "=登录":
+                if (NetImageTool.pixivLogin())
+                    return MessageUtils.newChain("成功！");
+                else
+                    return MessageUtils.newChain("失败！");
+            case "=清除缓存":
+                return Utils.clearCache()? MessageUtils.newChain("成功！"): MessageUtils.newChain("失败！");
         }
         return null;
     }

@@ -1,14 +1,12 @@
 package com.my.net;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.my.entity.PixivImage;
+import com.my.util.MyLog;
+import com.my.util.Records;
 import com.my.util.Settings;
 import com.my.util.Utils;
-import net.coobird.thumbnailator.Thumbnails;
 import net.dreamlu.mica.http.HttpRequest;
 
 import javax.imageio.ImageIO;
@@ -17,42 +15,119 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.Duration;
+import java.util.LinkedList;
+import java.util.List;
 
 public class NetImageTool {
     final static String seTuApi = "https://api.lolicon.app/setu/";
-    final static String pixivInfoApi = "https://api.imjad.cn/pixiv/v1/";
+    static String pixivInfoApi = "http://127.0.0.1:" + Settings.pixivPort + "/pixiv/";
 
+    //lolicon随机色图
     public static PixivImage getSeTuInfo() {
         String url = seTuApi + "?apikey=" + Settings.apiKey.get("lolicon") + "&size1200=true&r18=" + (Settings.pixivR18? "2": "0");
-        String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(5)).execute().asString();
-        System.out.println(t);
+        String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(10)).execute().asString();
         JsonObject object = (JsonObject) JsonParser.parseString(t);
         if (object.get("code").getAsInt() == 0) {
             JsonObject info = object.getAsJsonArray("data").get(0).getAsJsonObject();
             return new Gson().fromJson(info, new TypeToken<PixivImage>(){}.getType());
         } else {
-            System.out.println("Get " + url + " failed!\nresponse: " + t);
+            MyLog.failed("lolicon API error! response: " + t);
             return null;
         }
     }
 
-    private static JsonArray getSeTuArray(String tag, int num, boolean r18) {
-        String url = pixivInfoApi + "?type=search&mode=tag&per_page=200&word=" + tag +
-                (num > 0 ? " " + num + "users" : "") +
-                (r18 ? " R-18" : "");
-        System.out.println(url);
+    static List<PixivImage> RECOMMEND = new LinkedList<>();
+
+    public static void autoLoginThreadStart(int intervalMin) {
+        Thread auto = new Thread(() -> {
+            while (true) {
+                pixivLogin();
+                try {
+                    Thread.sleep(intervalMin * 60 * 1000);
+                } catch (InterruptedException e) {
+                    MyLog.error(e);
+                }
+            }
+        });
+        auto.setName("pixiv-auto-login");
+        auto.start();
+    }
+
+    public static boolean pixivLogin() {
+        String url = pixivInfoApi + "login?name=" + Settings.pixivID + "&pwd=" + Settings.pixivPWD;
         try {
             String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(5)).execute().asString();
+            JsonObject object = (JsonObject) JsonParser.parseString(t);
+            if (object.get("code").getAsInt() != 200) {
+                MyLog.failed(object.get("message").getAsString());
+                return false;
+            }
+            MyLog.info("PIXIV LOGIN");
+            return true;
+        } catch (Exception e) {
+            MyLog.error(e);
+            return false;
+        }
+    }
+
+    public static void addRecommend() {
+        String url = pixivInfoApi + "recommend";
+        try {
+            String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(20)).readTimeout(Duration.ofSeconds(30))
+                    .execute().asString();
+            JsonObject object = (JsonObject) JsonParser.parseString(t);
+            if (object.get("code").getAsInt() == 200) {
+                JsonArray resp = object.get("message").getAsJsonArray();
+                if (resp != null) {
+                    RECOMMEND.addAll(decodeJsonArray(resp));
+                    MyLog.info("ADD RECOMMEND SIZE = " + RECOMMEND.size());
+                } else {
+                    pixivLogin();
+                    MyLog.failed("recommend failed!");
+                }
+            } else {
+                MyLog.failed("recommend failed: " + t);
+            }
+        } catch (Exception e) {
+            pixivLogin();
+            MyLog.error(e);
+        }
+    }
+
+    public static PixivImage recommend() {
+        if (RECOMMEND.size() == 0)
+            addRecommend();
+        if (RECOMMEND.size() == 0)
+            return null;
+        int index = (int) (RECOMMEND.size() * Math.random());
+        return RECOMMEND.remove(index);
+    }
+
+    private static JsonArray getSeTuArray(String tag, int num, boolean r18) {
+        String word = tag + (num > 0 ? " " + num + "users" : "") + (r18 ? " R-18" : "");
+        JsonArray read = Utils.getSearchCache(word);
+        if (read != null) {
+            MyLog.info("READ FROM CACHE: TAG=" + tag + " SIZE=" + read.size());
+            return read;
+        }
+        String url = pixivInfoApi + "search?limit=100&word=" + word;
+        MyLog.info("Getting " + url);
+        try {
+            String t = HttpRequest.get(url).connectTimeout(Duration.ofSeconds(20)).readTimeout(Duration.ofSeconds(30))
+                    .execute().asString();
             JsonObject res = (JsonObject) JsonParser.parseString(t);
-        if (res.get("status").getAsString().equals("success")) {
-            JsonArray works = res.get("response").getAsJsonArray();
-            System.out.println("IMAGE NUMBER = " + works.size());
-            return works;
+        if (res.get("code").getAsInt() == 200) {
+            JsonArray jsonArray = res.get("message").getAsJsonArray();
+            Utils.writeSearchCache(word, jsonArray);
+            return jsonArray;
         } else {
-            System.out.println("Get " + url + " failed!\nresponse: " + t);
+            MyLog.failed("Get " + url + " failed! response: " + t);
+            pixivLogin();
             return null;
             }
         } catch (Exception e) {
+            pixivLogin();
+            MyLog.error(e);
             return null;
         }
     }
@@ -62,11 +137,22 @@ public class NetImageTool {
         if (works == null)
             return null;
         if (works.size() < 10) {
-            JsonArray more = getSeTuArray(Utils.autoComplete(tag), num, r18);
-            if (more != null)
-                works.addAll(more);
+            List<String> moreTrans = Utils.autoComplete(tag);
+            for (String more: moreTrans) {
+                JsonArray array = getSeTuArray(more, num, r18);
+                if (array != null) {
+                    works.addAll(array);
+                }
+            }
         }
-        return getRandomUserImg(works);
+        if (works.size() < 10) {
+            JsonArray array = getSeTuArray(trans, 500, r18);
+            if (array != null) {
+                works.addAll(array);
+            }
+        }
+        MyLog.info("Search: " + tag + " Trans: " + trans + " Result size: " + works.size());
+        return getRandomImg(works, true);
     }
 
     public static BufferedImage getUrlImg(String url) {
@@ -78,7 +164,8 @@ public class NetImageTool {
             connection.setReadTimeout(30 * 1000);
             return ImageIO.read(connection.getInputStream());
         } catch (Exception e) {
-            e.printStackTrace();
+            MyLog.failed("Getting image failed: " + url);
+            MyLog.error(e);
             return null;
         }
     }
@@ -93,7 +180,7 @@ public class NetImageTool {
             for (int i = 1; i < image.p; i++) {
                 PixivImage imm = new PixivImage(im);
                 imm.url = im.url.replaceAll("_p0", "_p" + i);
-                imm.urlLarge = im.urlLarge.replaceAll("_p0", "_p" + i);
+                imm.originalUrl = im.originalUrl.replaceAll("_p0", "_p" + i);
                 res[i] = imm;
             }
             return res;
@@ -106,46 +193,40 @@ public class NetImageTool {
         g.dispose();
     }
 
-    public static BufferedImage reduceImage(BufferedImage image, double rate) {
-        if (image == null) {
-            return null;
-        }
-        try {
-            BufferedImage bufferedImage = Thumbnails.of(image).scale(rate).outputQuality(1f).asBufferedImage();
-            return bufferedImage;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return image;
-        }
-    }
-
     public static PixivImage getInfoById(int id) {
         String url = pixivInfoApi + "?type=illust&id=" + id;
         String string = HttpRequest.get(url)
-                .connectTimeout(Duration.ofSeconds(5)).execute().asString();
+                .connectTimeout(Duration.ofSeconds(10)).execute().asString();
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(string);
         if (jsonObject.get("status").getAsString().equals("success")) {
             JsonObject imageInfo = jsonObject.get("response").getAsJsonArray().get(0).getAsJsonObject();
             return decodeImgJSON(imageInfo);
         } else {
-            System.out.println("Get " + url + " failed!\nresponse: " + string);
+            MyLog.failed("Get " + url + " failed! response: " + string);
             return null;
         }
+    }
+
+    private static List<PixivImage> decodeJsonArray(JsonArray array) {
+        List<PixivImage> res = new LinkedList<>();
+        for (JsonElement j : array) {
+            res.add(decodeImgJSON(j.getAsJsonObject()));
+        }
+        return res;
     }
 
     private static PixivImage decodeImgJSON(JsonObject imageInfo) {
         int pid = imageInfo.get("id").getAsInt();
         String title = imageInfo.get("title").getAsString();
-        JsonObject urlObject = imageInfo.get("image_urls").getAsJsonObject();
-        String urls = urlObject.get("px_480mw").getAsString();
-        String urlLarge = urlObject.get("large").getAsString();
+        String user = imageInfo.get("user_name").getAsString();
+        int uid = imageInfo.get("user_id").getAsInt();
+        boolean r18 = imageInfo.get("r18").getAsBoolean();
+        int p = imageInfo.get("page_count").getAsInt();
+        String urls = Settings.pixivLarge? imageInfo.get("large_url").getAsString():
+                imageInfo.get("medium_url").getAsString();
+        String urlLarge = imageInfo.get("original_url").getAsString();
         urlLarge = urlLarge.replaceAll("i\\.pximg\\.net", "i.pixiv.cat");
         urls = urls.replaceAll("i\\.pximg\\.net", "i.pixiv.cat");
-        JsonObject userInfo = imageInfo.get("user").getAsJsonObject();
-        String user = userInfo.get("name").getAsString();
-        int uid = userInfo.get("id").getAsInt();
-        boolean r18 = imageInfo.get("age_limit").getAsString().equals("r18");
-        int p = imageInfo.get("page_count").getAsInt();
         return new PixivImage(pid, p, uid, title, user, urls, urlLarge, r18);
     }
 
@@ -156,21 +237,28 @@ public class NetImageTool {
         if (res.get("status").getAsString().equals("success")) {
            return res.get("response").getAsJsonArray();
         } else {
-            System.out.println("Get " + url + " failed!\nresponse: " + jsonStr);
+            MyLog.failed("Get " + url + " failed! response: " + jsonStr);
         }
         return null;
     }
 
-    private static PixivImage getRandomUserImg(JsonArray array) {
+    private static PixivImage getRandomImg(JsonArray array, boolean removePlural) {
         if (array == null || array.size() == 0)
             return null;
-        int index = (int) (Math.random() * array.size());
-        JsonObject imageInfo = array.get(index).getAsJsonObject();
-        return decodeImgJSON(imageInfo);
+        List<PixivImage> pixivImages = decodeJsonArray(array);
+        if (removePlural) {
+            pixivImages.removeIf(p -> p.p > 1);
+        }
+        Records.clean(pixivImages);
+        MyLog.info("After clean size: " + pixivImages.size());
+        if (pixivImages.size() == 0)
+            return PixivImage.NO_MORE_PICTURES;
+        int index = (int) (Math.random() * pixivImages.size());
+        return pixivImages.get(index);
     }
 
     public static PixivImage getUserImgInfo(int id) {
-        return getRandomUserImg(getUserImg(id));
+        return getRandomImg(getUserImg(id), false);
     }
 
     public static PixivImage[] getRankInfo(String type, int num) {
@@ -189,7 +277,7 @@ public class NetImageTool {
             }
             return images;
         } else {
-            System.out.println("Get " + url + " failed!\nresponse: " + jsonStr);
+            MyLog.failed("Get " + url + " failed! response: " + jsonStr);
         }
         return null;
     }

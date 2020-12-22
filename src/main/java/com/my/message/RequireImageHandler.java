@@ -2,6 +2,8 @@ package com.my.message;
 
 import com.my.entity.PixivImage;
 import com.my.net.NetImageTool;
+import com.my.util.MyLog;
+import com.my.util.Records;
 import com.my.util.Utils;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.message.data.Message;
@@ -21,11 +23,19 @@ public class RequireImageHandler extends AsyncMessageHandler {
     public boolean accept(MessageChain s, Member member) {
         String content = s.contentToString();
         if (content.startsWith("来")) {
+            if (content.contains("推荐")) {
+                source = s;
+                sender = member;
+                matched = "recommend";
+                MyLog.accept(member.getId(), source, matched);
+                return true;
+            }
             for (String key : keys) {
                 if (content.contains(key)) {
                     source = s;
                     sender = member;
                     matched = key;
+                    MyLog.accept(member.getId(), source, matched);
                     return true;
                 }
             }
@@ -33,6 +43,7 @@ public class RequireImageHandler extends AsyncMessageHandler {
             source = s;
             sender = member;
             matched = "more";
+            MyLog.accept(member.getId(), source, matched);
             return true;
         }
         return false;
@@ -45,8 +56,10 @@ public class RequireImageHandler extends AsyncMessageHandler {
     }
 
     public Object[] getKeyword() {
-        if (matched.equals("more") && before != null) {
+        if (matched.equals("more")) {
             return before;
+        } else if (matched.equals("recommend")) {
+            return new Object[]{"recommend", null, null, null};
         } else {
             String s = source.contentToString();
             s = s.replaceAll("[来点份张涩色图\\s]", "");
@@ -59,6 +72,10 @@ public class RequireImageHandler extends AsyncMessageHandler {
     public void newThreadStart() {
         Thread d = new Thread(() -> {
             Object[] param = getKeyword();
+            if (param == null) {
+                cur--;
+                return;
+            }
             String keyword = (String) param[0];
             String trans = (String) param[1];
             boolean hasKeyword = !(keyword==null || keyword.length()==0);
@@ -69,7 +86,9 @@ public class RequireImageHandler extends AsyncMessageHandler {
 
             if (!hasKeyword)
                 info = NetImageTool.getSeTuInfo();
-            else {
+            else if (keyword.equals("recommend")) {
+                info = NetImageTool.recommend();
+            } else {
                 info = NetImageTool.getSeTuInfo(keyword, trans, (int) param[2], (boolean) param[3]);
             }
             if (info == null) {
@@ -77,21 +96,30 @@ public class RequireImageHandler extends AsyncMessageHandler {
                     sendErrorMessage("图片信息获取失败！");
                 else
                     sendErrorMessage("未搜索到相关结果!");
+                MyLog.failed(matched, "Keyword: " + keyword + " Trans: " + trans);
+                cur--;
+                return;
+            }
+            if (info.equals(PixivImage.NO_MORE_PICTURES)) {
+                sender.getGroup().sendMessage(MessageTool.atMsg(sender,
+                        MessageUtils.newChain("机器人想发图，但是全发过了，它怕你骂它蠢就不发一样的了。" +
+                                "\n尝试使用日文标签搜索或联系管理员添加标签翻译；" +
+                                "或尝试使用收藏数筛选（在指令最后加500,250等数字代表收藏数或'-'代表不使用收藏数筛选）；" +
+                                "或使用=clean命令清理历史记录（谨慎使用）。")));
                 cur--;
                 return;
             }
             before = param;
-            if (info.urlLarge == null) {
-                info.urlLarge = info.url;
-                info.url = NetImageTool.originUrlToMedium(info.urlLarge);
+            if (info.originalUrl == null) {
+                info.originalUrl = info.url;
+                info.url = NetImageTool.originUrlToMedium(info.originalUrl);
             }
-            System.out.println(info);
             Message message = MessageTool.uploadImage(info, sender.getGroup());
             if (message != null) {
                 sender.getGroup().sendMessage(message.plus(info.getNoUrlInfo()
-                        + "\n链接: " + info.urlLarge));
+                        + "\n链接: " + info.originalUrl));
+                Records.record(info);
             }
-
             cur--;
             System.out.println("线程退出。");
         });

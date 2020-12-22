@@ -1,5 +1,6 @@
 package com.my.bot;
 
+import com.my.util.MyLog;
 import com.my.util.Settings;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.BotFactoryJvm;
@@ -25,9 +26,10 @@ public class MyBot {
             startTime = System.currentTimeMillis();
             qqID = bot.getId();
             nick = bot.getNick();
+            MyLog.info("Login");
             return true;
         } catch (LoginFailedException e) {
-            System.out.println("登录失败！");
+            MyLog.failed("登录失败！");
             e.printStackTrace();
             return false;
         }

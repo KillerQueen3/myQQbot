@@ -18,8 +18,8 @@ public class MessageCatcher {
         handlerList.add(new InfoMessageHandler());
         handlerList.add(new DefendHandler());
         handlerList.add(new RequireImageHandler());
-        handlerList.add(new QueryImageHandler());
-        handlerList.add(new RankHandler());
+        //handlerList.add(new QueryImageHandler());
+        //handlerList.add(new RankHandler());
         handlerList.add(new ImageSearchHandler());
 
         List<FriendMessageHandler> friendMessageHandlers = new ArrayList<>();
